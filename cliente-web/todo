@@ -1,0 +1,11 @@
+- pregutar porque usa promesa en el suscribe y no en el poll
+
+
+suscribir ascensor -->TEST
+poll ascensor -->TEST
+
+suscribir cambioEstado
+poll cambioEstado
+publish cambioEstado // solo cuando se llega abajo, simular localmente la bajada y subida? deberia setear la velocidad del ascensor en un file de configuracion
+
+generar archivo de configuracion con: [ip, puerto, pollingRates, velocidadAscensor]

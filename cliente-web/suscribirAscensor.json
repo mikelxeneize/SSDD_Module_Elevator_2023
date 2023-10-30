@@ -1,0 +1,69 @@
+[
+    {
+        "caso": " json ascensor poll response",
+        "json": {
+            "id": "uuid",
+            "nombre": "nombreAscesor",
+            "pisos": [
+                1,
+                5,
+                13
+            ],
+            "estado": "disponible",
+            "pisoact": 2
+        }
+    },
+    {
+        "caso": " json ascensor suscribe response",
+        "json": {
+            "id": "uuid",
+            "ascensores": [
+                {
+                    "id": "uuid",
+                    "nombre": "nombreAscesor",
+                    "pisos": [
+                        1,
+                        5,
+                        13
+                    ],
+                    "estado": "disponible",
+                    "pisoact": 2
+                }
+            ]
+        }
+    },
+    {
+        "caso": " json cambioEstado suscribe response",
+        "json": {
+            "id": "uuid"
+        }
+    },
+    {
+        "caso": " json cambioEstado poll response",
+        "json": {
+            "id": "uuid",
+            "nombre": "nombreAscesor",
+            "pisos": [
+                1,
+                5,
+                13
+            ],
+            "estado": "disponible",
+            "pisoact": 2
+        }
+    },
+    {
+        "caso": " json cambioEstado publish",
+        "json": {
+            "id": "uuid",
+            "nombre": "nombreAscesor",
+            "pisos": [
+                1,
+                5,
+                13
+            ],
+            "estado": "disponible",
+            "pisoact": 2
+        }
+    }
+]
