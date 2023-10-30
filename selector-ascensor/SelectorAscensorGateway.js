@@ -1,7 +1,6 @@
 const http = require('http');
-
-const heroesService = require('./service/heroesService'); 
-
+const URL = require('url');
+const selectorAscensorService = require('./SelectorAscensorService.js'); 
 
 
 const requestHandler = (req, res) => {
@@ -20,10 +19,11 @@ const requestHandler = (req, res) => {
 }
 
 const getRequest = async (req, res, url) => {
-    console.log(url);
-    if (url.startsWith('/api/heroes/') || url === '/api/heroes' || url.startsWith('/api/heroes?')) {
+    if (url.startsWith('/api/selectorAscensor')) {
         try {
-            const respuesta = await heroesService.getMethod(url);
+            let parsedUrl = URL.parse(url, true);
+            let piso = parsedUrl.query.piso;
+            const respuesta = await selectorAscensorService.obtenerPiso(piso);
             res.setHeader('Content-Type', 'application/json'); // Devuelvo la respuesta con un header que indica que es JSON
             res.end(JSON.stringify(respuesta));
         } catch (err) {
@@ -43,9 +43,9 @@ const server = http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, POST, GET, PUT, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
     const { url } = req; //de req extraigo url
-    if (url.startsWith('/api')) {
+    console.log(url);
+    if (url.startsWith('/api/selectorAscensor')) {
         requestHandler(req, res);
         return;
     }
@@ -56,7 +56,7 @@ const server = http.createServer((req, res) => {
 });
 
 
-// Server escuchando en puerto 3000
-server.listen(3000, () => {
-    console.log('Server Gateway escuchando en puerto 3000');
+// Server escuchando en puerto 3001
+server.listen(3001, () => {
+    console.log('Server Gateway escuchando en puerto 3001');
 });

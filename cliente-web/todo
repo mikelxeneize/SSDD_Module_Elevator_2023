@@ -1,4 +1,12 @@
-- pregutar porque usa promesa en el suscribe y no en el poll
+
+pregutar:
+- porque usa promesa en el suscribe y no en el poll
+- porque solo en el request de publish pasas headers y en los otros no
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(postData),
+    },
+
 
 
 suscribir ascensor -->TEST

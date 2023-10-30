@@ -68,9 +68,12 @@ function pollAscensor(ip, port) {
     
     res.on('end', () => {
       if (res.statusCode === 200) {
-        const messages = JSON.parse(data.toString());
-        console.log(messages);
-
+        try {
+          const jsonData = JSON.parse(data);
+          console.log(topicPath + jsonData);
+        } catch (e) {
+          console.error('Error al parsear el body: ', error);
+        }
       } else if (res.statusCode === 204) {
         console.log('Empty cache Ascensores', res.statusCode);
       }
@@ -85,7 +88,7 @@ function pollAscensor(ip, port) {
 }
 
 function suscribirCambioEstado(ip,port) {
-  let topicPath = '/api/cambio/subscribe';
+  const topicPath = '/api/cambio/subscribe';
   
   return new Promise((resolve, reject) => {
     const options = {
@@ -99,7 +102,7 @@ function suscribirCambioEstado(ip,port) {
       let data = '';
 
       res.on('data', (chunk) => {
-        data += chunk;          //almacena la respuesta del servidor 
+        data += chunk;          
       });
 
       res.on('end', () => {
@@ -107,6 +110,7 @@ function suscribirCambioEstado(ip,port) {
           try {
             const jsonData = JSON.parse(data);
             console.log(topicPath + jsonData);
+            var idCambio = "idCambioDummy"
             resolve(jsonData);
           } catch (e) {
             console.error('Error al parsear el body: ', error);
@@ -123,12 +127,14 @@ function suscribirCambioEstado(ip,port) {
 }
 
 
-function pollCambioEstado() {
+function pollCambioEstado(ip,port) {
+  const topicPath = `/api/cambio/poll?id=${idCambio}`;
+  
   const options = {
     method: 'GET',
-    hostname: 'localhost',
-    port: 3000,
-    path: `/api/cambio/poll?id=${idCambio}`,
+    hostname: ip,
+    port: port,
+    path: topicPath,
   };
 
   const req = http.request(options, (res) => {
@@ -140,12 +146,12 @@ function pollCambioEstado() {
     
     res.on('end', () => {
       if (res.statusCode === 200) {
-        const messages = JSON.parse(data.toString());
-        
-       // Extract the numbers and state from the JSON data
-       const cambioEstado = messages.cambioEstado;
-       console.log(cambioEstado);
-
+        try {
+          const jsonData = JSON.parse(data);
+          console.log(topicPath + jsonData);
+        } catch (e) {
+          console.error('Error al parsear el body: ', error);
+        }
       } else if (res.statusCode === 204) {
         console.log('Empty cache Estado ', res.statusCode);
       }
@@ -158,8 +164,6 @@ function pollCambioEstado() {
 
   req.end();
 }
-
-
 
 function publicarCambioAscensor(ip, port) {
   topicPath = '/api/cambio/ascensor'
@@ -209,3 +213,6 @@ suscribirAscensor().then(() => {
     setInterval(pollCambioEstado, pollingIntervalCambioEstado);
   });
 });
+
+
+//alguna interfaz que muestre que esta inicilizando el cliente web
