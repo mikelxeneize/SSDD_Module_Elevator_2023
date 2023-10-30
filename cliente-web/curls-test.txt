@@ -1,0 +1,27 @@
+// ================================================
+// publish cambioEstado
+
+curl --location --request POST 'localhost:3000/api/cambio/publish' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "idAscensor": 1,
+    "estado": "ocupado",
+    "piso": 25,
+    "pisoNuevo": 0
+}'
+
+// ================================================
+// publish ascensor
+
+curl --location --request POST 'localhost:3000/api/ascensores/publish' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "id": 1,
+    "nombre": "ascensor1",
+    "pisos": [
+        1,
+        2,
+        10
+    ],
+    "estado": "oscioso"
+}'
