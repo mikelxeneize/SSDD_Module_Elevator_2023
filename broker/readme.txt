@@ -9,3 +9,7 @@ NOTAS:
 
 4) En la implementacion actual, el broker reenvia la publicacion a TODOS, incluso al cliente que la envi
   //Si se modifica es solo 1 linea, easy
+
+
+AÑADIDO:
+  5) Al suscribirse a topico "ascensor" devuelve ID y ascensores si es que hay ya creados

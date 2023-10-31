@@ -1,3 +1,5 @@
+//FALTA: Ver como llega el pisoActual al crear ascensor y luego modificarlo en el cambioEstado //facil
+
 const http = require('http');
 const url = require('url'); 
 const crypto = require("crypto"); //para encriptar ID
@@ -5,6 +7,7 @@ const crypto = require("crypto"); //para encriptar ID
 
 const subscribersAscensor = []; // Clientes suscriptos a numero (id, ip y topic)
 const subscribersCambioEstado = []; // Clientes suscriptos a cambio de estado (id, estado, piso, pisoAct)
+const ascensores = []; //lista de ascensores para los nuevos suscriptores 
 
 const requestHandlerAscensores = (req, res) => {  //reenvia las request
     const { method, url: requestUrl } = req;
@@ -60,9 +63,13 @@ async function subscribeAscensor(req, res) {
   
     
     res.statusCode = 200;  
-    res.end('Suscrito a topico ascensor. Su id es: ' + subscriber.id);  //le envia ID a cliente para short poll
-   
+    messages = {
+      id: subscriber.id,
+      ascensores: ascensores,
+    };
+    res.end(JSON.stringify(messages));
     console.log('Subscribers: ', subscribersAscensor);
+
    } catch (error) {
     res.statusCode = 400;
     res.end('Invalid JSON data in the request');
@@ -94,6 +101,7 @@ async function publishAscensor(req, res) {
             //pisoact: data.pisoact,
           }
           
+          ascensores.push(ascensor); //guarda en cache de broker el ascensor
           subscribersAscensor.forEach((s) => {s.cache.push(ascensor) });  //mete objeto en cache para enviar en poll
           
           res.statusCode = 200;
@@ -149,12 +157,14 @@ async function subscribeCambioEstado(req, res) {
    };
   
    subscribersCambioEstado.push(subscriber);
-
   
    res.statusCode = 200;  
-   res.end('Suscrito a topico Cambio de estado. Su id es: ' + subscriber.id);  
- 
-   console.log('Subscribers: ', subscribersCambioEstado);
+    messages = {
+      id: subscriber.id,
+    };
+    res.end(JSON.stringify(messages));
+    console.log('Subscribers: ', subscribersCambioEstado);
+
   } catch (error) {
    res.statusCode = 400;
    res.end('Invalid JSON data in the request');
@@ -184,7 +194,12 @@ async function publishCambioEstado(req, res) {
           pisoNuevo: data.pisoNuevo,  //piso al que se dirige
         }
         
-        console.log(cambioEstado);
+        //cambio el ascensor en cache local por si alguien se sucribe, lo tiene actualizado
+        const ascensor = ascensores.find((a) => a.id === cambioEstado.idAscensor);
+        ascensor.estado = cambioEstado.estado;
+        //ascensor.pisoact = cambioEstado.pisoNuevo;
+
+        console.log(ascensores);
         //En ESTE CASO SE ENVIA A TODOS INCLUYENDO AL QUE LO PUBLICO !!!VER SI DECIDIMOS QUE NO SE ENVIE AL QUE LO PUBLICO!!!
         subscribersCambioEstado.forEach((s) => {s.cache.push(cambioEstado) });  
         
