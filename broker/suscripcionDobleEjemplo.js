@@ -5,43 +5,42 @@ const http = require('http');
 var idAscensor = '';
 var idCambio = '';
 const pollingInterval = 3;
+var ascensores = [];
 
 function suscribirAscensores() {
-    return new Promise((resolve, reject) => {
-      const options = {
-        method: 'GET',
-        hostname: 'localhost',
-        port: 3000,
-        path: '/api/ascensores/subscribe',
-      };
-  
-      const req = http.request(options, (res) => {
-        let data = '';
-  
-        res.on('data', (chunk) => {
-          data += chunk;          //almacena la respuesta del servidor 
-        });
-  
-        res.on('end', () => {
-          if (res.statusCode === 200) {
-            const match = data.match(/Su id es: (.+)/);
-            if (match) {
-              idAscensor = match[1];
-              console.log('Suscrito a ascensores con id para llamada: ', idAscensor);
-              resolve(); // Resuelve la promesa una vez que se obtiene el ID
-            } else {
-              console.log('Unable to retrieve the ID from the response.');
-              reject('Unable to retrieve the ID');
-            }
-          } else {
-            console.log('Error subscribing to topic: ', res.statusCode);
-            reject(`Error subscribing to topic: ${res.statusCode}`);
-          }
-        });
+  return new Promise((resolve, reject) => {
+    const options = {
+      method: 'GET',
+      hostname: 'localhost',
+      port: 3000,
+      path: '/api/ascensores/subscribe',
+    };
+
+    const req = http.request(options, (res) => {
+      let data = '';
+
+      res.on('data', (chunk) => {
+        data += chunk;          //almacena la respuesta del servidor 
       });
-  
-      req.end();
+
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          console.log("llegue");
+          const responseData = JSON.parse(data.toString());
+          idAscensor = responseData.id;
+          ascensores = responseData.ascensores;
+          console.log('Suscrito a ascensores con id para llamada: ', idAscensor);
+          console.log('Ascensores: ', ascensores)
+          resolve(); // Resuelve la promesa una vez que se obtiene el ID
+        } else {
+          console.log('Error subscribing to topic: ', res.statusCode);
+          reject(`Error subscribing to topic: ${res.statusCode}`);
+        }
+      });
     });
+
+    req.end();
+  });
 }
 
 
@@ -101,16 +100,11 @@ function suscribirCambioEstado() {
   
         res.on('end', () => {
           if (res.statusCode === 200) {
-            const match = data.match(/Su id es: (.+)/);
-            if (match) {
-              idCambio = match[1];
-              console.log('Suscrito a cambio de estados con id para llamada: ', idCambio);
+              const responseData = JSON.parse(data.toString());
+              idCambio = responseData.id;
+              console.log('Suscrito a Cambios de Estados con id para llamada: ', idCambio);
               resolve(); // Resuelve la promesa una vez que se obtiene el ID
             } else {
-              console.log('Unable to retrieve the ID from the response.');
-              reject('Unable to retrieve the ID');
-            }
-          } else {
             console.log('Error subscribing to topic: ', res.statusCode);
             reject(`Error subscribing to topic: ${res.statusCode}`);
           }
@@ -160,12 +154,11 @@ function pollCambioEstado() {
 }
 
 
-//Esta es solo para 1 suscripcion
+
 /*suscribirCambioEstado().then(() => {
     setInterval(pollCambioEstado, pollingInterval * 1000);
   });*/
 
-//Suscripcion doble
 suscribirAscensores().then(() => {
     suscribirCambioEstado().then(() => {
       setInterval(pollAscensor, pollingInterval * 1000);
