@@ -1,17 +1,19 @@
 [
     {
         "caso": " json ascensor poll response",
-        "json": {
-            "id": "uuid",
-            "nombre": "nombreAscesor",
-            "pisos": [
-                1,
-                5,
-                13
-            ],
-            "estado": "disponible",
-            "pisoact": 2
-        }
+        "json": [
+            {
+                "id": "uuid",
+                "nombre": "nombreAscesor",
+                "pisos": [
+                    1,
+                    5,
+                    13
+                ],
+                "estado": "disponible",
+                "pisoact": 2
+            }
+        ]
     },
     {
         "caso": " json ascensor suscribe response",
