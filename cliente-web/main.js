@@ -1,5 +1,10 @@
-import { router } from "./router/index.router.js" //Importa funcion ROUTER, PONER CON .JS ALFINAL!!
-const requestUtils = require('./request-utils.js');
+import { sendHttpRequest } from './request-utils.js';
+
+const brokerIp = 'localhost'
+const brokerPort = '3000'
+
+const pollingIntervalAscensor = 100000;
+const pollingIntervalCambioEstado = 100000;
 
 const pathSuscribirAscensor = '/api/ascensores/subscribe';
 const pathPollAscensor = '/api/ascensores/poll?id=';
@@ -63,30 +68,32 @@ function handlePollCambioEstado(data){
 
 // =======================================================================================================================================
 
-let ascensores = []
-const ascensoresContainer = document.getElementById("ascensores-container");
+let ascensores = [];
+let ascensoresContainer = document.getElementById("ascensores-container");
 
-requestUtils.sendHttpRequest(ip, port, pathSuscribirAscensor, 'POST').then((response) => {
+sendHttpRequest(brokerIp, brokerPort, pathSuscribirAscensor, 'POST')
+.then((response) => {
     const resJson = JSON.parse(response[1]); //resBody parseado a json
     handlePollAscensor(resJson.ascensores); // manejo los ascensores ya existentes
     const idAscensor = resJson.id;
-    setInterval(requestUtils.sendHttpRequest(ip, port, pathPollAscensor + idAscensor, 'GET'), pollingIntervalAscensor).then((response) => { 
+    consolelog(idAscensor)
+    setInterval(() => {
+        sendHttpRequest(brokerIp, brokerPort, pathPollAscensor + idAscensor, 'GET')
+    }, pollingIntervalAscensor).then((response) => { 
         handlePollAscensor(response);
     })
-});
-requestUtils.sendHttpRequest(ip, port, pathSuscribirCambioEstado, 'POST').then((idCambioEstado) => {
-    setInterval(requestUtils.sendHttpRequest(ip, port, pathPollCambioEstado + idCambioEstado, 'GET'), pollingIntervalCambioEstado).then((response) => { 
+})
+.catch((error) => {
+    console.error('Error en la solicitud:', error);
+  });
+sendHttpRequest(brokerIp, brokerPort, pathSuscribirCambioEstado, 'POST')
+.then((idCambioEstado) => {
+    setInterval(() => {
+        sendHttpRequest(brokerIp, brokerPort, pathPollCambioEstado + idCambioEstado, 'GET')
+    }, pollingIntervalCambioEstado).then((response) => { 
         handlePollCambioEstado(response);
     });
-});
-
-
-
-router(window.location.hash); //llama por primera vez
-
-window.addEventListener('hashchange', () => {  //cada vez que cambia url llama a router
-    router(window.location.hash);
-});
-
-if (window.location.hash === '')
-    window.location.hash = '#/';
+})
+.catch((error) => {
+    console.error('Error en la solicitud:', error);
+  });
