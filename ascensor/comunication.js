@@ -6,6 +6,7 @@ const sendData = async (url, data) => {
         body: JSON.stringify(data),
         headers: { 'Content-Type': 'application/json' },
     });
+    // falta manejar errores
     return await response.json();
 }
 
@@ -14,6 +15,7 @@ const getData = async (url) => {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
     });
+    // falta manejar errores
     return await response.json();
 }
 
