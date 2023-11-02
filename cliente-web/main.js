@@ -62,7 +62,7 @@ function handlePollCambioEstado(ascensores) {
 
 // =======================================================================================================================================
 
-let ascensores = [];
+var ascensores = [];
 let ascensoresContainer = document.getElementById("ascensores-container");
 
 sendHttpRequest(brokerIp, brokerPort, pathSuscribirAscensor, 'POST')
@@ -81,7 +81,21 @@ sendHttpRequest(brokerIp, brokerPort, pathSuscribirAscensor, 'POST')
         console.error('Error en la solicitud:', error);
     });
 
-
+sendHttpRequest(brokerIp, brokerPort, pathSuscribirAscensor, 'POST')
+    .then((response) => {
+        console.log(`sub ascensor ${response.id} - cant ${response.ascensores.length}`);
+        const idAscensor = response.id;
+        handlePollAscensor(response.ascensores); // manejo los ascensores ya existentes
+        setInterval(() =>{
+            sendHttpRequest(brokerIp, brokerPort, pathPollAscensor + idAscensor, 'GET')
+                .then((response) => {
+                    handlePollAscensor(response);
+                })}
+        , pollingIntervalAscensor);
+    })
+    .catch((error) => {
+        console.error('Error en la solicitud:', error);
+    });
 /*
 sendHttpRequest(brokerIp, brokerPort, pathSuscribirCambioEstado, 'POST')
 .then((idCambioEstado) => {
