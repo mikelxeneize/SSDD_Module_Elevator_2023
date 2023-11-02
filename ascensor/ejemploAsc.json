@@ -1,0 +1,11 @@
+{
+    "id": "AScensor1",
+    "nombre": "pepe",
+    "pisos": [
+        1,
+        5,
+        13
+    ],
+    "estado": "disponible",
+    "pisoact": 2
+}
