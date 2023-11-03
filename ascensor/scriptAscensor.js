@@ -32,6 +32,7 @@ comunication.sendDataSync (subscribeBrokerState,elevator)// me suscribo al topic
     console.log("me suscribi al topic de estado del ascensor");
     console.log(idSuscribeState);
     while(true){
+    setTimeout(function() { // para que no haga tantas peticiones juntas
         waitInformation()
         .then ((result) => { // si recibo un cambio de estado
             elevator.state=result.estados
@@ -72,8 +73,6 @@ comunication.sendDataSync (subscribeBrokerState,elevator)// me suscribo al topic
                 })
             });
         })
-    setTimeout(function() {
-        console.log('esperando cambio de estado')
     }, 1000);
     
     }
