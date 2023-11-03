@@ -102,6 +102,7 @@ async function publishAscensor(req, res) {
           }
           
           ascensores.push(ascensor); //guarda en cache de broker el ascensor
+          console.log(ascensor)
           subscribersAscensor.forEach((s) => {s.cache.push(ascensor) });  //mete objeto en cache para enviar en poll
           
           res.statusCode = 200;

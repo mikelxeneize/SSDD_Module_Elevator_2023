@@ -3,8 +3,8 @@ import { sendHttpRequest } from './request-utils.js';
 const brokerIp = 'localhost'
 const brokerPort = '3000'
 
-const pollingIntervalAscensor = 100000;
-const pollingIntervalCambioEstado = 100000;
+const pollingIntervalAscensor = 5000;
+const pollingIntervalCambioEstado = 5000;
 
 const pathSuscribirAscensor = '/api/ascensores/subscribe';
 const pathPollAscensor = '/api/ascensores/poll?id=';
@@ -46,15 +46,15 @@ function handlePollAscensor(ascensores) {
     if (ascensores) {
         ascensores.forEach((ascensor) => {
             addAscensor(ascensor);
-            ascensor.push(ascensor);
+            ascensoresArray.push(ascensor);
         });
     }
 }
 
-function handlePollCambioEstado(ascensores) {
-    if (ascensores) {
-        ascensores.forEach((ascensor) => {
-            editAscensor(ascensor);
+function handlePollCambioEstado(cambiosEstado) {
+    if (cambiosEstado) {
+        cambiosEstado.forEach((cambioEstado) => {
+            editAscensor(cambioEstado);
         });
     }
 }
@@ -62,7 +62,7 @@ function handlePollCambioEstado(ascensores) {
 
 // =======================================================================================================================================
 
-var ascensores = [];
+var ascensoresArray = [];
 let ascensoresContainer = document.getElementById("ascensores-container");
 
 sendHttpRequest(brokerIp, brokerPort, pathSuscribirAscensor, 'POST')
@@ -70,42 +70,46 @@ sendHttpRequest(brokerIp, brokerPort, pathSuscribirAscensor, 'POST')
         console.log(`sub ascensor ${response.id} - cant ${response.ascensores.length}`);
         const idAscensor = response.id;
         handlePollAscensor(response.ascensores); // manejo los ascensores ya existentes
-        setInterval(() =>{
+        setInterval(() => {
             sendHttpRequest(brokerIp, brokerPort, pathPollAscensor + idAscensor, 'GET')
                 .then((response) => {
-                    handlePollAscensor(response);
-                })}
-        , pollingIntervalAscensor);
+                    
+                    handlePollAscensor(response.ascensores);
+                })
+        }
+            , pollingIntervalAscensor);
     })
     .catch((error) => {
-        console.error('Error en la solicitud:', error);
+        console.error('Error en la solicitud ascensor:', error);
     });
 
-sendHttpRequest(brokerIp, brokerPort, pathSuscribirAscensor, 'POST')
+sendHttpRequest(brokerIp, brokerPort, pathSuscribirCambioEstado, 'POST')
     .then((response) => {
-        console.log(`sub ascensor ${response.id} - cant ${response.ascensores.length}`);
-        const idAscensor = response.id;
-        handlePollAscensor(response.ascensores); // manejo los ascensores ya existentes
-        setInterval(() =>{
-            sendHttpRequest(brokerIp, brokerPort, pathPollAscensor + idAscensor, 'GET')
+        console.log(`sub cambioEstado ${response.id}`);
+        const idCambioEstado = response.id;
+        setInterval(() => {
+            sendHttpRequest(brokerIp, brokerPort, pathPollCambioEstado + idCambioEstado, 'GET')
                 .then((response) => {
-                    handlePollAscensor(response);
-                })}
-        , pollingIntervalAscensor);
+                    handlePollCambioEstado(response);
+                })
+        }
+            , pollingIntervalCambioEstado);
     })
     .catch((error) => {
-        console.error('Error en la solicitud:', error);
+        console.error('Error en la solicitud cambioEstado:', error);
     });
-/*
-sendHttpRequest(brokerIp, brokerPort, pathSuscribirCambioEstado, 'POST')
-.then((idCambioEstado) => {
-  setInterval(() => {
-      sendHttpRequest(brokerIp, brokerPort, pathPollCambioEstado + idCambioEstado, 'GET')
-  }, pollingIntervalCambioEstado).then((response) => { 
-      handlePollCambioEstado(response);
-  });
-})
-.catch((error) => {
-  console.error('Error en la solicitud:', error);
-});
-*/
+
+
+    /* 
+setInterval(() => {
+    const jsonDummy = `[
+        {
+            "idAscensor": "1",
+            "estado": "disponible",
+            "piso": 2,
+            "pisoNuevo": 2
+        }
+    ]`
+    handlePollCambioEstado(JSON.parse(jsonDummy));
+}
+    , pollingIntervalCambioEstado * 1.5); */
