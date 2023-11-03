@@ -6,8 +6,13 @@ const sendData = async (url, data) => {
         body: JSON.stringify(data),
         headers: { 'Content-Type': 'application/json' },
     });
-    // falta manejar errores
-    return await response.json();
+    if (response.status === 200) {
+        // Si el código de estado es 200 (OK), parsea y devuelve la respuesta como JSON.
+        return await response.json();
+    } else {
+        // Si el código de estado no es 200, lanza un error con el código de estado y el texto de la respuesta.
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
 }
 
 const getData = async (url) => {
@@ -15,8 +20,13 @@ const getData = async (url) => {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
     });
-    // falta manejar errores
-    return await response.json();
+    if (response.status === 200) {
+        // Si el código de estado es 200 (OK), parsea y devuelve la respuesta como JSON.
+        return await response.json();
+    } else {
+        // Si el código de estado no es 200, lanza un error con el código de estado y el texto de la respuesta.
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
 }
 
 module.exports = {
