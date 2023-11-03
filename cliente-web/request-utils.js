@@ -20,21 +20,24 @@ export function sendHttpRequest(ip, port, path, tipo, body) {
   console.log('Request:', url, tipo);
 
   return fetch(url, options)
-    .then((res) => {
-      if (res.ok) {
-        if (res.status != 204) {
-          return res.json();
-        }
-        else{ //body vacio
-          return null;
-        }
-      } else { //response != 20X
-        console.log('Error', res.status);
-        reject('Error ' + res.status);
+  .then(async (res) => {
+    if (res.ok) {
+      const textData = await res.text();
+      console.log(textData);
+      try {
+        const jsonData = JSON.parse(textData);
+        return jsonData;
+      } catch (error) {
+        return null;
       }
-    })
-    .catch((error) => { //error en el fetch
-      console.error('Fetch error:', error);
-      reject(error);
-    });
+    } else {
+      console.log('Error', res.status);
+      return Promise.reject(`Error ${res.status}`);
+    }
+  })
+  .catch((error) => {
+    console.error('Fetch error:', error);
+    return Promise.reject(error);
+  });
+
 }

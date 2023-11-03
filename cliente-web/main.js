@@ -11,7 +11,7 @@ const pathPollAscensor = '/api/ascensores/poll?id=';
 
 const pathSuscribirCambioEstado = '/api/cambio/subscribe';
 const pathPollCambioEstado = '/api/cambio/poll?id=';
-const pathPublicarCambioEstado = '/api/cambio/ascensor';
+const pathPublicarCambioEstado = '/api/cambio/publish';
 
 /* 
 - template del contenido del div html del ascensor
@@ -32,24 +32,47 @@ function crearDivAscensor(ascensor) {
           <p class="card-text">Piso Actual: ${ascensor.pisoact}</p>
         </div>
         <div class="card-footer d-flex justify-content-between">
-          <button class="btn btn-success">Ver Detalles</button>
-          <button class="btn btn-danger">Detener Ascensor</button>
+          <button id="${ascensor.id}-cerrarPuertas" class="btn btn-success">Cerrar Puertas</button>
+          <button id="${ascensor.id}-detenerAscensor" class="btn btn-danger">Detener Ascensor</button>
         </div>
       </div>
     `;
     return divAscensor;
-  }
+}
+
+/* 
+Event listeners para cada ascensor
+*/
+function setupBotones(ascensor){
+    const botonDetenerAscensor = document.getElementById(`${ascensor.id}-detenerAscensor`);
+    botonDetenerAscensor.addEventListener("click", function () {
+        alert("A quien vas a parar vo' anda palla");
+    });
+
+    const botonCerrarPuertas = document.getElementById(`${ascensor.id}-cerrarPuertas`);
+    botonCerrarPuertas.addEventListener("click", function () {
+        const body = {
+            idAscensor: 1,
+            estado: "disponible",
+            piso: 233,
+            pisoNuevo: 0
+        }
+        sendHttpRequest(brokerIp, brokerPort, pathPublicarCambioEstado, 'POST', body);
+    });
+}
 
 /* 
 - Add y edit ascensor son en relacion al html
 */
 function addAscensor(ascensor) {
     ascensoresContainer.appendChild(crearDivAscensor(ascensor));
+    setupBotones(ascensor);
 }
 
 function editAscensor(ascensor) {
     const ascensorElement = document.getElementById(ascensor.id);
-    ascensorElement.replaceWith(crearDivAscensor(ascensor))
+    ascensorElement.replaceWith(crearDivAscensor(ascensor));
+    setupBotones(ascensor);
 }
 
 /*
@@ -67,9 +90,9 @@ function handlePollAscensor(ascensores) {
     }
 }
 
- /* 
- edita el ascensor y despues se lo pasa por parametro 
- */
+/* 
+edita el ascensor y despues se lo pasa por parametro 
+*/
 function handlePollCambioEstado(cambiosEstado) {
     if (cambiosEstado) {
         cambiosEstado.forEach((cambioEstado) => {
@@ -121,16 +144,16 @@ sendHttpRequest(brokerIp, brokerPort, pathSuscribirCambioEstado, 'POST')
     });
 
 
-    /* 
+/*
 setInterval(() => {
-    const jsonDummy = `[
-        {
-            "idAscensor": "1",
-            "estado": "disponible",
-            "piso": 2,
-            "pisoNuevo": 2
-        }
-    ]`
-    handlePollCambioEstado(JSON.parse(jsonDummy));
+const jsonDummy = `[
+    {
+        "idAscensor": "1",
+        "estado": "disponible",
+        "piso": 2,
+        "pisoNuevo": 2
+    }
+]`
+handlePollCambioEstado(JSON.parse(jsonDummy));
 }
-    , pollingIntervalCambioEstado * 1.5); */
+, pollingIntervalCambioEstado * 1.5); */
