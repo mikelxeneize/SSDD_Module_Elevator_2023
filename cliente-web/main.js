@@ -16,27 +16,40 @@ const pathPublicarCambioEstado = '/api/cambio/ascensor';
 /* 
 - template del contenido del div html del ascensor
 */
-function createAscensorHtml(ascensor){
-    return `
-        <h2>${ascensor.nombre}</h2>
-        <p>Estado: ${ascensor.estado}</p>
-        <p>Piso Actual: ${ascensor.pisoact}</p>
+function crearDivAscensor(ascensor) {
+    // Crea un nuevo elemento div con las clases y el ID
+    const divAscensor = document.createElement("div");
+    divAscensor.id = ascensor.id;
+    divAscensor.className = "col-lg-4 col-md-6 col-sm-12";
+    // Crea el contenido interno del div
+    divAscensor.innerHTML = `
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title">${ascensor.nombre}</h5>
+        </div>
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2 text-muted">Estado: ${ascensor.estado}</h6>
+          <p class="card-text">Piso Actual: ${ascensor.pisoact}</p>
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+          <button class="btn btn-success">Ver Detalles</button>
+          <button class="btn btn-danger">Detener Ascensor</button>
+        </div>
+      </div>
     `;
-}
+    return divAscensor;
+  }
 
 /* 
 - Add y edit ascensor son en relacion al html
 */
 function addAscensor(ascensor) {
-    const ascensorElement = document.createElement("div");
-    ascensorElement.id = ascensor.id;
-    ascensorElement.innerHTML = createAscensorHtml(ascensor);
-    ascensoresContainer.appendChild(ascensorElement);
+    ascensoresContainer.appendChild(crearDivAscensor(ascensor));
 }
 
 function editAscensor(ascensor) {
     const ascensorElement = document.getElementById(ascensor.id);
-    ascensorElement.innerHTML = createAscensorHtml(ascensor);
+    ascensorElement.replaceWith(crearDivAscensor(ascensor))
 }
 
 /*
