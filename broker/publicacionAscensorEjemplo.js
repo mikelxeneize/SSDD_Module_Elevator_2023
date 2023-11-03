@@ -9,7 +9,7 @@ function publicarAscensor() {
       nombre: "ascensor1",
       pisos: [1,2,10],
       estado: "oscioso",
-      //pisoact: 25,
+      pisoact: 25,
     });
   
     const options = {

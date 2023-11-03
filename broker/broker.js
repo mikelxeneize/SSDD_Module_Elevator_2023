@@ -138,9 +138,8 @@ async function pollAscensor(req, res, id) {
     }
   
     // Si no esta vacio, envia los mensajes (puede ser mas de 1)
-    const messages = {
-      ascensores: subscriber.cache,
-    }; 
+    const messages = subscriber.cache;
+    
     res.statusCode = 200;
     res.end(JSON.stringify(messages));
 
@@ -242,9 +241,7 @@ async function pollCambioEstado(req, res, id) {
   }
 
   // Si no esta vacio, envia los mensajes (puede ser mas de 1)
-  const messages = {
-    cambioEstado: subscriber.cache,
-  }; 
+  const messages =  subscriber.cache;
   res.statusCode = 200;
   res.end(JSON.stringify(messages));
 
