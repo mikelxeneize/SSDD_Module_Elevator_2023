@@ -14,47 +14,56 @@ const pathPollCambioEstado = '/api/cambio/poll?id=';
 const pathPublicarCambioEstado = '/api/cambio/ascensor';
 
 /* 
+- template del contenido del div html del ascensor
+*/
+function createAscensorHtml(ascensor){
+    return `
+        <h2>${ascensor.nombre}</h2>
+        <p>Estado: ${ascensor.estado}</p>
+        <p>Piso Actual: ${ascensor.pisoact}</p>
+    `;
+}
+
+/* 
 - Add y edit ascensor son en relacion al html
 */
 function addAscensor(ascensor) {
     const ascensorElement = document.createElement("div");
     ascensorElement.id = ascensor.id;
-    ascensorElement.innerHTML = `
-        <h2>${ascensor.nombre}</h2>
-        <p>Estado: ${ascensor.estado}</p>
-        <p>Piso Actual: ${ascensor.pisoact}</p>
-    `;
+    ascensorElement.innerHTML = createAscensorHtml(ascensor);
     ascensoresContainer.appendChild(ascensorElement);
 }
 
 function editAscensor(ascensor) {
     const ascensorElement = document.getElementById(ascensor.id);
-    ascensorElement.innerHTML = `
-        <h2>${ascensor.nombre}</h2>
-        <p>Estado: ${ascensor.estado}</p>
-        <p>Piso Actual: ${ascensor.pisoact}</p>
-    `;
+    ascensorElement.innerHTML = createAscensorHtml(ascensor);
 }
 
 /*
  --------- HANDLE ---------
-- recibe un arrray de objetos ascensor
-- valida de ascensores no sea null
+- recibe un arrray de objetos 
 - aca se concentran todas las validaciones
+- se editan variables del funcionamiento interno
 */
 function handlePollAscensor(ascensores) {
     if (ascensores) {
         ascensores.forEach((ascensor) => {
-            addAscensor(ascensor);
             ascensoresArray.push(ascensor);
+            addAscensor(ascensor);
         });
     }
 }
 
+ /* 
+ edita el ascensor y despues se lo pasa por parametro 
+ */
 function handlePollCambioEstado(cambiosEstado) {
     if (cambiosEstado) {
         cambiosEstado.forEach((cambioEstado) => {
-            editAscensor(cambioEstado);
+            const ascensor = ascensoresArray.find(ascensor => ascensor.id == cambioEstado.idAscensor);
+            ascensor.estado = cambioEstado.estado;
+            ascensor.pisoact = cambioEstado.piso;
+            editAscensor(ascensor);
         });
     }
 }
@@ -73,8 +82,7 @@ sendHttpRequest(brokerIp, brokerPort, pathSuscribirAscensor, 'POST')
         setInterval(() => {
             sendHttpRequest(brokerIp, brokerPort, pathPollAscensor + idAscensor, 'GET')
                 .then((response) => {
-                    
-                    handlePollAscensor(response.ascensores);
+                    handlePollAscensor(response);
                 })
         }
             , pollingIntervalAscensor);

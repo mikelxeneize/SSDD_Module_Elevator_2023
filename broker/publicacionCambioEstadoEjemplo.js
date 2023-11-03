@@ -5,7 +5,7 @@ function publicarCambioAscensor() {
     const postData = JSON.stringify({
       idAscensor: 1,
       estado: "ocupado",
-      piso: 25,
+      piso: 233,
       pisoNuevo: 0,
     });
   

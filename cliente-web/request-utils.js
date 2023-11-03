@@ -7,10 +7,10 @@ export function sendHttpRequest(ip, port, path, tipo, body) {
 
   const options = {
     method: tipo,
-    headers: {
+    /* headers: {
       'Content-Type': 'application/json',
       'Content-Length': contenidoEnBytes.length.toString(),
-    },
+    }, */
   };
 
   if (body !== undefined) {
