@@ -1,38 +1,125 @@
 const http = require('http');
 
-const sendData = async (url, data) => {
-    const response = await fetch(url, {
+function sendDataSync(url, data) {
+    const postData = JSON.stringify(data);
+
+    const options = {
+        hostname: 'localhost',
+        port: 3000,
+        path: '/api' + url, // Concatena la URL con la ruta base',
         method: 'POST',
-        body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': postData.length
+        }
+    };
+
+    const req = http.request(options);
+
+    req.write(postData);
+    req.end();
+
+    return new Promise((resolve, reject) => {
+        req.on('response', (res) => {
+            let responseData = '';
+
+            res.on('data', (chunk) => {
+                responseData += chunk;
+            });
+
+            res.on('end', () => {
+                resolve((responseData));
+            });
+        });
+
+        req.on('error', (error) => {
+            reject(error);
+        });
     });
-    if (response.status === 200) {
-        // Si el código de estado es 200 (OK), parsea y devuelve la respuesta como JSON.
-        return await response.json();
-    } else {
-        // Si el código de estado no es 200, lanza un error con el código de estado y el texto de la respuesta.
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
-    }
 }
 
-const getData = async (url) => {
-    const response = await fetch(url,{
+function getDataSync(url) {
+    const options = {
+        hostname: 'localhost',
+        port: 3000,
+        path: '/api' + url, // Concatena la URL con la ruta base
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+
+    const req = http.request(options);
+
+    req.end();
+
+    return new Promise((resolve, reject) => {
+        req.on('response', (res) => {
+            let responseData = '';
+
+            res.on('data', (chunk) => {
+                responseData += chunk;
+            });
+
+            res.on('end', () => {
+                resolve(responseData);
+            });
+        });
+
+        req.on('error', (error) => {
+            reject(error);
+        });
     });
-    if (response.status === 200) {
-        // Si el código de estado es 200 (OK), parsea y devuelve la respuesta como JSON.
-        return await response.json();
-    } else {
-        // Si el código de estado no es 200, lanza un error con el código de estado y el texto de la respuesta.
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
-    }
 }
 
 module.exports = {
-    sendData,
-    getData
-}
+    sendDataSync,
+    getDataSync
+};
+
+//const http = require('http');
+
+//const sendDataAsync = async (url, data) => {
+//    console.log(url);
+//    console.log(data);
+//    const response = await fetch(url, {
+//        method: 'POST',
+//        body: JSON.stringify(data),
+//        headers: { 'Content-Type': 'application/json' },
+//    }).then((response) => {
+//        console.log(response);
+//        return response
+//    }).catch((err) => {
+//        console.log(err);
+//    });
+//    if (response.status === 200) {
+//         console.log("se recibio la data")// Si el código de estado es 200 (OK), parsea y devuelve la respuesta como JSON.
+//         console.log(response)
+//         return await response.json();
+//    } else {
+//        // Si el código de estado no es 200, lanza un error con el código de estado y el texto de la respuesta.
+//        console.log("no se recibio nada")
+//    }
+//}
+//
+//const getDataAsync = async (url) => {
+//    const response = await fetch(url,{
+//        method: 'GET',
+//        headers: { 'Content-Type': 'application/json' },
+//    });
+//    if (response.status === 200) {
+//        // Si el código de estado es 200 (OK), parsea y devuelve la respuesta como JSON.
+//        return await response.json();
+//    } else {
+//        // Si el código de estado no es 200, lanza un error con el código de estado y el texto de la respuesta.
+//        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+//    }
+//}
+//
+//module.exports = {
+//    sendData,
+//    getData
+//}
 
 
 //const heroesService = require('./service/heroesService'); // aca deberia ir a donde me conecto con el broker

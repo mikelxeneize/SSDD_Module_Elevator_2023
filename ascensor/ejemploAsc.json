@@ -1,11 +1,12 @@
 {
-    "id": "AScensor1",
-    "nombre": "pepe",
+    "id": "c84605b4-7a59-11ee-b962-0242ac120002",
+    "nombre": "Pepe",
     "pisos": [
         1,
+        2,
         5,
         13
     ],
-    "estado": "disponible",
-    "pisoact": 2
+    "estado": "DISPONIBLE",
+    "pisoact": 0
 }
