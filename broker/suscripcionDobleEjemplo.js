@@ -65,7 +65,7 @@ function pollAscensor() {
           const messages = JSON.parse(data.toString());
           
          // Extract the numbers and state from the JSON data
-         const ascensores = messages.ascensores;
+         const ascensores = messages;
          console.log(ascensores);
 
         } else if (res.statusCode === 204) {
@@ -137,7 +137,7 @@ function pollCambioEstado() {
           const messages = JSON.parse(data.toString());
           
          // Extract the numbers and state from the JSON data
-         const cambioEstado = messages.cambioEstado;
+         const cambioEstado = messages;
          console.log(cambioEstado);
 
         } else if (res.statusCode === 204) {
