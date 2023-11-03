@@ -98,7 +98,7 @@ async function publishAscensor(req, res) {
             nombre: data.nombre,
             pisos: data.pisos,      //array
             estado: data.estado,
-            //pisoact: data.pisoact,
+            pisoact: data.pisoact,
           }
           
           ascensores.push(ascensor); //guarda en cache de broker el ascensor
@@ -196,8 +196,14 @@ async function publishCambioEstado(req, res) {
         
         //cambio el ascensor en cache local por si alguien se sucribe, lo tiene actualizado
         const ascensor = ascensores.find((a) => a.id === cambioEstado.idAscensor);
-        ascensor.estado = cambioEstado.estado;
-        //ascensor.pisoact = cambioEstado.pisoNuevo;
+        if (!ascensor) {
+          res.statusCode = 400;
+          res.end('Ascensor no encontrado');
+          return;
+        }
+
+         ascensor.estado = cambioEstado.estado;
+         ascensor.pisoact = cambioEstado.pisoNuevo;
 
         console.log(ascensores);
         //En ESTE CASO SE ENVIA A TODOS INCLUYENDO AL QUE LO PUBLICO !!!VER SI DECIDIMOS QUE NO SE ENVIE AL QUE LO PUBLICO!!!
