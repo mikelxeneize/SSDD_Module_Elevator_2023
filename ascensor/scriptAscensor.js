@@ -2,7 +2,7 @@ const fs = require('fs');
 
 const comunication = require('./comunication');
 
-const comunication2 = require('./SelectorAscensorClienteBroker');
+//const comunication2 = require('./SelectorAscensorClienteBroker');
 
 const pubBrokerAscensor = '/ascensores/publish';
 
@@ -27,55 +27,54 @@ var elevator = JSON.parse(contenidoJSON);
 
 comunication.sendDataSync(pubBrokerAscensor,elevator); // publico el ascensor en el broker
 comunication.sendDataSync (subscribeBrokerState,elevator)// me suscribo al topic de estado del ascensor en el broker
-.then ((result) => {
+.then (async (result) => {
     const idSuscribeState=JSON.parse(result).id;
     console.log("me suscribi al topic de estado del ascensor");
-    console.log(idSuscribeState);
+    console.log("id suscripcion:",idSuscribeState);
     while(true){
-    setTimeout(function() { // para que no haga tantas peticiones juntas
-        waitInformation()
-        .then ((result) => { // si recibo un cambio de estado
-            elevator.state=result.estados
-            elevator.pisoNuevo=result.pisoNuevo
-            comunication2.sendHttpRequest(pubBrokerState,'POST', {
-                "idAscensor": elevator.id,
-                "estado": elevator.estado,
-                "piso": result.piso,
-                "pisoNuevo": result.pisoNuevo
-            })
-            moveElevator(result,0);// muevo el ascensor al 0, bajo
-            elevator.state='DISPONIBLE'
-            comunication2.sendHttpRequest(pubBrokerState,'POST', {
-                "idAscensor": elevator.id,
-                "estado": elevator.estado,
-                "piso": 0,
-                "pisoNuevo": result.pisoNuevo
-            })
-            waitInformation(timeAvilable)  // espera 30 segundos en el piso en estado disponible antes de ponerse oscioso
-            .then((result) => { // si recibio un nuevo cambio de estado, de disponible a ocupado
-                elevator.state=result.estado
+            var data = comunication.getDataSync(pollBrokerState,'GET') // hago un get al broker en el topico cambio de estado
+            if (data!==null && data.id == elevator.id){ // espero a que el id del ascensor sea el mismo que el mio
+                elevator.state=data.estado
                 elevator.pisoNuevo=result.pisoNuevo
-                comunication2.sendHttpRequest(pubBrokerState,'POST',{
+                comunication.sendDataSync(pubBrokerState,'POST', {
                     "idAscensor": elevator.id,
                     "estado": elevator.estado,
                     "piso": result.piso,
                     "pisoNuevo": result.pisoNuevo
                 })
-                moveElevator(result,result.pisoNuevo) // muevo el ascensor al piso nuevo
-            })
-            .catch((err) => { // si no se recibio ningun cambio de estado en 30 segundos, el ascensor se va a oscioso
-                elevator.state='OSCIOSO'
-                comunication2.sendHttpRequest(pubBrokerState,'POST', {
+                moveElevator(result,0);// muevo el ascensor al 0, bajo
+                elevator.state='DISPONIBLE'
+                comunication.sendDataSync(pubBrokerState,'POST', {
                     "idAscensor": elevator.id,
                     "estado": elevator.estado,
-                    "piso": elevator.piso,
-                    "pisoNuevo": elevator.pisoNuevo
+                    "piso": 0,
+                    "pisoNuevo": result.pisoNuevo
                 })
-            });
-        })
-    }, 1000);
-    
-    }
+                waitInformation(timeAvilable)
+                .then(async (result) => { // si recibio un nuevo cambio de estado, de disponible a ocupado
+                    elevator.state=result.estado
+                    elevator.pisoNuevo=result.pisoNuevo
+                    comunication.sendDataSync(pubBrokerState,'POST',{
+                        "idAscensor": elevator.id,
+                        "estado": elevator.estado,
+                        "piso": result.piso,
+                        "pisoNuevo": result.pisoNuevo
+                    })
+                    moveElevator(result,result.pisoNuevo) // muevo el ascensor al piso nuevo
+                })
+                .catch((err) => { // si no se recibio ningun cambio de estado en 30 segundos, el ascensor se va a oscioso
+                    elevator.state='OSCIOSO'
+                    comunication.sendDataSync(pubBrokerState,'POST', {
+                        "idAscensor": elevator.id,
+                        "estado": elevator.estado,
+                        "piso": elevator.piso,
+                        "pisoNuevo": elevator.pisoNuevo
+                    })
+                });
+            }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log("esperando cambio de estado");
+    }//
 })
 .catch((err) => {
     console.log(err);
@@ -90,7 +89,7 @@ async function moveElevator(data, floorToGo){
             elevator.pisoact -= 1;
         else
             elevator.pisoact += 1;
-        comunication2.sendHttpRequest(pubBrokerState,{
+        comunication.sendDataSync(pubBrokerState,{
             "idAscensor": elevator.id,
             "estado": elevator.estado,
             "piso": elevator.pisoact,
@@ -100,7 +99,7 @@ async function moveElevator(data, floorToGo){
     }
 }
 
-function waitInformation(timewait) { // funciona como un timeout, espera 30 segundos a que llegue un cambio de estado
+async function waitInformation(timewait) { // funciona como un timeout, espera 30 segundos a que llegue un cambio de estado
     if (timewait == timeAvilable) { // me fijo si la actualizacion que busco es de disponible, o de cambio de estado
         return new Promise((resolve, reject) => {
         let cont = 0;
@@ -110,7 +109,7 @@ function waitInformation(timewait) { // funciona como un timeout, espera 30 segu
                 clearInterval(interval);
                 reject(1);
             }
-            actData=await comunication2.sendHttpRequest(pollBrokerState, 'GET')
+            actData=await comunication.getDataSync(pollBrokerState, 'GET')
             //aca tendria que ver como conectarlo con el broker mqtt del sensor
             if (actData!==null && actData.id == elevator.id){
                 resolve(actData);
@@ -118,15 +117,4 @@ function waitInformation(timewait) { // funciona como un timeout, espera 30 segu
         }, 1000); // Espera 1 segundo (1000 milisegundos) antes de verificar nuevamente
         });
     }
-    else
-    return new Promise((resolve, reject) => {
-        let cont = 0;
-        const interval = setInterval(async () => {
-            var data = await comunication2.sendHttpRequest(pollBrokerState,'GET'); // hago un get al broker en el topico cambio de estado
-            //console.log(data);
-            if (data!==null && data.id == elevator.id){ //si es la data que necesito
-                resolve(data);
-            }
-        }, 1000); // Espera 1 segundo (1000 milisegundos) antes de verificar nuevamente
-        });
 }

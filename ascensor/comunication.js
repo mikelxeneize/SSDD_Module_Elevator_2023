@@ -53,7 +53,7 @@ function getDataSync(url) {
 
     req.end();
 
-    return new Promise((resolve, reject) => {
+    return new  Promise((resolve, reject) => {
         req.on('response', (res) => {
             let responseData = '';
 
