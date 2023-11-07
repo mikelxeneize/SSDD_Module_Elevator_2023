@@ -7,64 +7,106 @@ const selectorAscensorClienteBroker = require('./SelectorAscensorClienteBroker.j
     { id: 4, nombre: "A4", pisos: [ 4, 5, 6 ],  estado: "Disponible", piso_actual: 9}
 ] */
 let Ascensores=[]
-let Identificadores=[]
+var idAscensor = '';
+var idCambio = '';
 const pollingInterval = 8;
 
 const obtenerPiso = async (piso) => {
     let distancia=999
     let id=-999
-    
+    let ascensor
+    console.log("Ascensores" +Ascensores);
     Ascensores.forEach(function(elemento) {
-        console.log('elemento: ',elemento)
-        if ((elemento.estado=='Disponible' || elemento.estado=='Ocioso' )  && elemento.pisos.includes(parseInt(piso)) && elemento.piso_actual<distancia ) {
+        if ((elemento.estado.toLowerCase()=='disponible' || elemento.estado.toLowerCase()=='ocioso' || elemento.estado.toLowerCase()=='oscioso')  && elemento.pisos.includes(parseInt(piso)) && elemento.pisoact<distancia ) {
             id=elemento.id
             distancia=elemento.distancia
+            ascensor=elemento
         }
     });
-    selectorAscensorClienteBroker.sendHttpRequest('/publisher/cambiarEstadoAscensor', 'POST',{id:id,estado: 'Ocioso'})
-        .then(respuesta => {
-            //quizas aqui vaya algo, habra que ver que resulta de todo esto
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    console.log(id);
-    return id;
-};
+    const objetoAEnviar={
+      idAscensor: ascensor.id,
+      estado: 'Ocupado',
+      piso: ascensor.pisoact,
+      pisoNuevo: piso
 
+    }
+    if(id==-999){
+      selectorAscensorClienteBroker.sendHttpRequest('/cambio/publish', 'POST',objetoAEnviar)
+          .then(respuesta => {
+              //quizas aqui vaya algo, habra que ver que resulta de todo esto
+          })
+          .catch(error => {
+              console.error('Error:', error);
+          });
+      console.log(id);
+    }
+    return id;
+  }
 const pollAscensor = async (piso) => {
-    const body=Identificadores[0];
-    selectorAscensorClienteBroker.sendHttpRequest('/subscribe/nuevoAscensor', 'GET',body)
-    .then(respuesta => {
-        const respuestaObjeto = JSON.parse(respuesta);
-        Ascensores.push(respuestaObjeto)
-    
-    })
-    .catch(error => {
-        console.error('Error:', error);
-      });
+  selectorAscensorClienteBroker.sendHttpRequest(`/ascensores/poll?id=${idAscensor}`, 'GET')
+  .then(respuesta => {
+      const respuestaObjeto = JSON.parse(respuesta);
+      console.log(respuestaObjeto.toString());
+      for (const objeto of respuestaObjeto.ascensores) {
+        Ascensores.push(objeto);
+    }
+  
+  })
+  .catch(error => {
+    if(error=='Error 204')
+      console.log('No hay ascensores nuevos');
+    else
+      console.error('Error:', error);
+    });
 }
 
-selectorAscensorClienteBroker.sendHttpRequest('/subscribe/nuevoAscensor', 'POST')
+const pollCambios = async (piso) => {
+  selectorAscensorClienteBroker.sendHttpRequest(`/cambio/poll?id=${idCambio}`, 'GET')
+  .then(respuesta => {
+      const respuestaObjeto = JSON.parse(respuesta);
+      console.log(respuestaObjeto.toString());
+      for(const objeto of respuestaObjeto){
+        for(const ascensor of Ascensores){
+          if(ascensor.id==objeto.idAscensor){
+            ascensor.estado=objeto.estado
+            ascensor.pisoact=objeto.piso
+          }
+        }
+      }
+      console.log(Ascensores)
+  })
+  .catch(error => {
+    if (error=='Error 204')
+      console.log('No hay cambios nuevos');
+    else
+      console.error('Error:', error);
+    });
+}
+
+selectorAscensorClienteBroker.sendHttpRequest('/ascensores/subscribe', 'POST')
   .then(respuesta => {
     const respuestaObjeto = JSON.parse(respuesta);
-    Identificadores = Identificadores.concat(respuestaObjeto.id_subscripcion);
-    Ascensores= Ascensores.concat(respuestaObjeto.ascensores_activos);
+    idAscensor = respuestaObjeto.id;
+    for (const objeto of respuestaObjeto.ascensores) {
+      Ascensores.push(objeto);
+    }
+    console.log(Ascensores);
     setInterval(pollAscensor, pollingInterval * 1000);  
   })
   .catch(error => {
     console.error('Error:', error);
   });
 
-selectorAscensorClienteBroker.sendHttpRequest('/subscribe/estados', 'POST')
+
+
+selectorAscensorClienteBroker.sendHttpRequest('/cambio/subscribe', 'POST')
   .then(respuesta => {
-    const respuestaObjeto = JSON.parse(respuesta);
-    Identificadores = Identificadores.concat(respuestaObjeto.id_subscripcion);
-    setInterval(pollAscensor, pollingInterval * 1000);  
+    const respuestaObjeto = JSON.parse(respuesta.toString());
+    idCambio = respuestaObjeto.id;
+    setInterval(pollCambios, pollingInterval * 1000);  
   })
   .catch(error => {
     console.error('Error:', error);
   });
-
 
 module.exports = { obtenerPiso };
