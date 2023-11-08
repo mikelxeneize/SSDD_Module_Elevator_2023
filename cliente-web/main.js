@@ -13,6 +13,10 @@ const pathSuscribirCambioEstado = '/api/cambio/subscribe';
 const pathPollCambioEstado = '/api/cambio/poll?id=';
 const pathPublicarCambioEstado = '/api/cambio/publish';
 
+const estadoDisponible = 'DISPONIBLE';
+const estadoOcupado = 'OCUPADO';
+const estadoOcioso = 'OCIOSO';
+
 /* 
 - template del contenido del div html del ascensor
 */
@@ -51,14 +55,22 @@ function setupBotones(ascensor) {
 
     const botonCerrarPuertas = document.getElementById(`${ascensor.id}-cerrarPuertas`);
     botonCerrarPuertas.addEventListener("click", function () {
-        const body = {
-            idAscensor: 1,
-            estado: "disponible",
-            piso: 233,
-            pisoNuevo: 0,
-            solicitud: true
+        const nuevoEstado = null;
+        if (ascensor.estado == estadoDisponible && ascensor.piso == 0) {
+            nuevoEstado = estadoOcupado;
+        } else if (ascensor.estado == estadoOcupado && ascensor.piso == ascensor.pisoNuevo) {
+            nuevoEstado == estadoOcioso;
         }
-        sendHttpRequest(brokerIp, brokerPort, pathPublicarCambioEstado, 'POST', body);
+        if (nuevoEstado) {
+            const body = {
+                idAscensor: ascensor.id,
+                estado: nuevoEstado,
+                piso: ascensor.piso,
+                pisoNuevo: ascensor.pisoNuevo,
+                solicitud: true
+            }
+            sendHttpRequest(brokerIp, brokerPort, pathPublicarCambioEstado, 'POST', body);
+        }
     });
 }
 
