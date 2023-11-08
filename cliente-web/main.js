@@ -3,8 +3,8 @@ import { sendHttpRequest } from './request-utils.js';
 const brokerIp = 'localhost'
 const brokerPort = '3000'
 
-const pollingIntervalAscensor = 5000;
-const pollingIntervalCambioEstado = 5000;
+const pollingIntervalAscensor = 500;
+const pollingIntervalCambioEstado = 500;
 
 const pathSuscribirAscensor = '/api/ascensores/subscribe';
 const pathPollAscensor = '/api/ascensores/poll?id=';
@@ -55,17 +55,17 @@ function setupBotones(ascensor) {
 
     const botonCerrarPuertas = document.getElementById(`${ascensor.id}-cerrarPuertas`);
     botonCerrarPuertas.addEventListener("click", function () {
-        const nuevoEstado = null;
-        if (ascensor.estado == estadoDisponible && ascensor.piso == 0) {
+        let nuevoEstado = null;
+        if (ascensor.estado == estadoDisponible && ascensor.pisoact == 0) {
             nuevoEstado = estadoOcupado;
-        } else if (ascensor.estado == estadoOcupado && ascensor.piso == ascensor.pisoNuevo) {
+        } else if (ascensor.estado == estadoOcupado && ascensor.pisoact == ascensor.pisoNuevo) {
             nuevoEstado == estadoOcioso;
         }
         if (nuevoEstado) {
             const body = {
                 idAscensor: ascensor.id,
                 estado: nuevoEstado,
-                piso: ascensor.piso,
+                piso: ascensor.pisoact,
                 pisoNuevo: ascensor.pisoNuevo,
                 solicitud: true
             }

@@ -18,94 +18,91 @@ const timeInFloor = 2000; // 2 segundos por piso
 
 const timeAvilable = 30000 // 30 segundos disponible antes de ponerse oscioso
 
-const timeBetweenPoll = 1000 // 1 segundo entre consulta y consulta 
+const timeBetweenPoll = 5000 // 5 segundo entre consulta y consulta 
 
 //lectura del archivo json sincronico
 const contenidoJSON = fs.readFileSync(fileName, 'utf8');
 var elevator = JSON.parse(contenidoJSON);
-// hasta aca sabemos que funciona
+elevator.pisoTarget = 0;
+//elevator tiene los siguientes datos:
+// id: id del ascensor
+//nombre: nombre del ascensor
+// pisos: pisos del ascensor
+// estado: estado del ascensor
+// pisoact: piso actual del ascensor
+// pisotarget: piso al que se dirige el ascensor
 
+//yo publico con solicitud false
 comunication.sendDataSync(pubBrokerAscensor, elevator); // publico el ascensor en el broker
 comunication.sendDataSync(subscribeBrokerState, elevator)// me suscribo al topic de estado del ascensor en el broker
     .then(async (result) => {
-        const idSuscribeState = JSON.parse(result).id;
+        const idSuscribeState = JSON.parse(result).id; //id de la suscripcion
         console.log("me suscribi al topic de estado del ascensor");
         console.log("id suscripcion:", idSuscribeState);
-        pollBrokerState = pollBrokerState + `?id=${idSuscribeState}`;
-        pubBrokerState = pubBrokerState + `?id=${idSuscribeState}`;
+        pollBrokerState = pollBrokerState + `?id=${idSuscribeState}`; // agrego el id de la suscripcion a la url
+        pubBrokerState = pubBrokerState + `?id=${idSuscribeState}`; // agrego el id de la suscripcion a la url
         while (true) {
             comunication.getDataSync(pollBrokerState) // hago un get al broker en el topico cambio de estado
-                .then((data) => {
-                    console.log("respuesta:" + data)
-                    const respuestaObjeto = JSON.parse(data);
-                    var ascensor = null
-                    for (const objeto of respuestaObjeto) {
-                        if (elevator.id == objeto.idAscensor && objeto.solicitud == true) {
-                            ascensor = objeto
+                .then((resultGet) => {
+                    console.log("respuesta:" + resultGet)
+                    const arrayResult = JSON.parse(resultGet);
+                    var elevatorReceive = null
+                    for (const object of arrayResult) { //recorro el arreglo y lo transformo en un objeto al ultimo que tengo
+                        if (elevator.id == object.idAscensor && object.solicitud == true) { // true para no pisarme, ya que yo mando siempre false
+                            elevatorReceive = object //ascensor que recibo del get
                         }
                     }
-                    console.log(respuestaObjeto.toString());
-                    if (ascensor !== null) { // si es nulo, no tengo ningun cambio de estado solicitado
+                    if (elevatorReceive !== null) { // si es nulo, no tengo ningun cambio de estado solicitado
+                        elevator.pisoTarget = elevatorReceive.pisoNuevo; // asigno al ascensor hasta que piso me voy a mover
                         console.log("recibi un cambio de estado");
-                        console.log(ascensor);
-                        comunication.sendDataSync(pubBrokerState, { // mando confirmacion del cambio de estadp
+                        console.log(elevatorReceive);
+                        comunication.sendDataSync(pubBrokerState, { // mando confirmacion del cambio de estado
                             "idAscensor": elevator.id,
-                            "estado": ascensor.estado,
-                            "piso": ascensor.piso,
-                            "pisoNuevo": ascensor.pisoNuevo,
+                            "estado": elevatorReceive.estado,
+                            "piso": elevatorReceive.piso,
+                            "pisoNuevo": elevatorReceive.pisoTarget,
                             "solicitud": false
                         })
-                        console.log("se envio cambio de estado")
-                        if (elevator.estado == 'OCIOSO' && ascensor.estado == 'OCUPADO') {    
-                            elevator.pisoNuevo = ascensor.pisoNuevo
+                        console.log("se envio confirmacion de cambio de estado")
+                        estadoRecividoMayuscula=elevatorReceive.estado.toUpperCase()
+                        if (elevator.estado == 'OCIOSO' && estadoRecividoMayuscula == 'OCUPADO') {
                             elevator.estado = 'OCUPADO'
-                            moveElevator(elevator, 0);// muevo el ascensor al 0, bajo
-                            elevator.estado = 'DISPONIBLE'
-                            comunication.sendDataSync(pubBrokerState, {
-                                "idAscensor": elevator.id,
-                                "estado": elevator.estado,
-                                "piso": 0,
-                                "pisoNuevo": ascensor.pisoNuevo,
-                                "solicitud": false
-                            })
-                        }
-                        else if (elevator.estado == 'DISPONIBLE' && ascensor.estado == 'OCUPADO') {
-                            console.log("se envio cambio de estado")
-                            moveElevator(elevator, ascensor.pisoNuevo);// muevo el ascensor al 0, bajo
-                            elevator.estado = 'OCUPADO'
-                            comunication.sendDataSync(pubBrokerState, {
-                                "idAscensor": elevator.id,
-                                "estado": elevator.estado,
-                                "piso": 0,
-                                "pisoNuevo": ascensor.pisoNuevo,
-                                "solicitud": false
-                            })
-                        }
-
-                        // aca me tengo que fijar si hay un ocupado si yo estoy disponible en el brker
-                        /*waitInformation(timeAvilable)
-                            .then(async (result) => { // si recibio un nuevo cambio de estado, de disponible a ocupado
-                                elevator.state = result.estado
-                                elevator.pisoNuevo = result.pisoNuevo
-                                comunication.sendDataSync(pubBrokerState,{
-                                    "idAscensor": elevator.id,
-                                    "estado": elevator.estado,
-                                    "piso": result.piso,
-                                    "pisoNuevo": result.pisoNuevo,
-                                    "solicitud": false
+                            moveElevator(elevator, 0)
+                                .then(result => {
+                                    console.log("Elevador llegó a su destino:", result);
+                                    elevator.estado = 'DISPONIBLE' // estoy disponible en el piso 0
+                                    comunication.sendDataSync(pubBrokerState, {
+                                        "idAscensor": elevator.id,
+                                        "estado": elevator.estado,
+                                        "piso": 0,
+                                        "pisoNuevo": elevatorReceive.pisoNuevo,
+                                        "solicitud": false
+                                    })
                                 })
-                                moveElevator(result, result.pisoNuevo) // muevo el ascensor al piso nuevo
-                            })
-                            .catch((err) => { // si no se recibio ningun cambio de estado en 30 segundos, el ascensor se va a oscioso
-                                elevator.state = 'OCIOSO'
-                                comunication.sendDataSync(pubBrokerState,{
-                                    "idAscensor": elevator.id,
-                                    "estado": elevator.estado,
-                                    "piso": elevator.piso,
-                                    "pisoNuevo": elevator.pisoNuevo,
-                                    "solicitud": false
+                                .catch(error => {
+                                    console.error("Error:", error);
+                                    console.error("El elevador no llegó a su destino. (piso 0)");
+                                });
+                        }
+                        else if (elevator.estado == 'DISPONIBLE' && estadoRecividoMayuscula == 'OCUPADO') { //cambio momentaneo
+                            var pisoFinal = elevator.pisoTarget; // piso al que me voy a mover
+                            moveElevator(elevator, pisoFinal)
+                                .then(result => {
+                                    console.log("Elevador llegó a su destino:", result);
+                                    elevator.estado = 'OCIOSO'
+                                    comunication.sendDataSync(pubBrokerState, {
+                                        "idAscensor": elevator.id,
+                                        "estado": elevator.estado,
+                                        "piso": elevator.pisoact,
+                                        "pisoNuevo": elevatorReceive.pisoNuevo,
+                                        "solicitud": false
+                                    })
                                 })
-                            });*/
+                                .catch(error => {
+                                    console.error("Error:", error);
+                                    console.error(`El elevador no llegó a su destino.piso ${pisoFinal}`);
+                                });
+                        }
                     }
 
                 })
@@ -114,6 +111,7 @@ comunication.sendDataSync(subscribeBrokerState, elevator)// me suscribo al topic
                         console.log('No hay cambios nuevos');
                     else
                         console.error('Error:', error);
+                    //aca tengo que agarrar lo que manda el broker mqtt
                 });
             await new Promise(resolve => setTimeout(resolve, 1000));
             console.log("esperando cambio de estado");
@@ -125,56 +123,61 @@ comunication.sendDataSync(subscribeBrokerState, elevator)// me suscribo al topic
 
 
 function moveElevator(data, floorToGo) {
-    let toGo = Math.abs(data.pisoact - floorToGo); // cantidad de pisos que tiene que subir o bajar
-    let aux = data.pisoact;
-    for (let i = 0; i < aux; i++) { // recorro los pisos
-        new Promise(resolve => setTimeout(resolve, timeInFloor)); // espera 5 segundos por piso
+    return new Promise((resolve, reject) => {
+        console.log('----------------Data:' + JSON.stringify(data));
+        let aux;
         if (floorToGo == 0)
-            data.pisoact -= 1;
+            aux = data.pisoact;
         else
-            data.pisoact += 1;
-        comunication.sendDataSync(pubBrokerState, {
-            "idAscensor": data.id,
-            "estado": data.estado,
-            "piso": data.pisoact,
-            "pisoNuevo": data.pisoNuevo,
-            "solicitud": false
-        }) // publico el estado del ascensor en el broker por cada piso que pasa
-        console.log(`Ascensor ${elevator.id} en piso ${data.pisoact}`); // no existe currentFloor
-    }
+            aux = floorToGo;
+
+        function moveOneFloor() {
+            if (aux > 0) {
+                if (floorToGo == 0)
+                    data.pisoact -= 1;
+                else
+                    data.pisoact += 1;
+
+                comunication.sendDataSync(pubBrokerState, {
+                    "idAscensor": data.id,
+                    "estado": data.estado,
+                    "piso": data.pisoact,
+                    "pisoNuevo": data.pisoTarget,
+                    "solicitud": false
+                }); // publico el estado del ascensor en el broker por cada piso que pasa
+
+                console.log(`Ascensor ${data.id} en piso ${data.pisoact}`);
+
+                aux--;
+                setTimeout(moveOneFloor, 1000); // Espera 1 segundo antes de moverse al siguiente piso
+            } else {
+                resolve(data); // Resuelve la promesa cuando ha alcanzado todos los pisos
+            }
+        }
+
+        moveOneFloor();
+    });
 }
 
-async function waitInformation(timewait) { // funciona como un timeout, espera 30 segundos a que llegue un cambio de estado
-    if (timewait == timeAvilable) { // me fijo si la actualizacion que busco es de disponible, o de cambio de estado
-        return new Promise((resolve, reject) => {
-            let cont = 0;
-            const interval = setInterval(async () => {
-                cont++;
-                if (cont >= timewait / 1000) {  // Verificar si ha pasado el tiempo límite (30 segundos)
-                    clearInterval(interval);
-                    reject(1);
-                }
-                comunication.getDataSync(pollBrokerState)
-                    .then(actData => {
-                        var valornuevo = null
-                        actData = JSON.parse(actData)
-                        for (const objeto of actData) {
-                            if (elevator.id == objeto.idAscensor && objeto.solicitud == true) {
-                                valornuevo = objeto
-                            }
-                        }
-                        //aca tendria que ver como conectarlo con el broker mqtt del sensor
-                        if (valornuevo !== null) {
-                            resolve(valornuevo);
-                        }
-                    })
-                    .catch(error => {
-                        if (error == 'Error 204')
-                            console.log('No hay cambios nuevos');
-                        else
-                            console.error('Error:', error);
-                    });
-            }, 1000); // Espera 1 segundo (1000 milisegundos) antes de verificar nuevamente
-        });
-    }
+/*function moveElevator(data, floorToGo) {
+console.log('----------------Data:' + JSON.stringify(data))
+let aux
+if (floorToGo == 0)
+    aux = data.pisoact;
+else
+    aux = floorToGo;
+for (let i = 0; i < aux; i++) { // recorro los pisos
+    if (floorToGo == 0)
+        data.pisoact -= 1;  
+    else
+        data.pisoact += 1;
+    comunication.sendDataSync(pubBrokerState, {
+        "idAscensor": data.id,
+        "estado": data.estado,
+        "piso": data.pisoact,
+        "pisoNuevo": data.pisoTarget,
+        "solicitud": false  
+    }) // publico el estado del ascensor en el broker por cada piso que pasa
+    console.log(`Ascensor ${elevator.id} en piso ${data.pisoact}`); // no existe currentFloor
 }
+}*/
