@@ -15,23 +15,27 @@ const obtenerPiso = async (piso) => {
     let distancia=999
     let id=-999
     let ascensor
+    let respuesta={id: -999, nombre: "No hay ascensores disponibles"}
     console.log("Ascensores" +Ascensores);
     Ascensores.forEach(function(elemento) {
-        if ((elemento.estado.toLowerCase()=='disponible' || elemento.estado.toLowerCase()=='ocioso' || elemento.estado.toLowerCase()=='oscioso')  && elemento.pisos.includes(parseInt(piso)) && elemento.pisoact<distancia ) {
+        if (( elemento.estado.toLowerCase()=='ocioso' || elemento.estado.toLowerCase()=='oscioso')  && elemento.pisos.includes(parseInt(piso)) && elemento.pisoact<distancia ) {
             id=elemento.id
             distancia=elemento.distancia
             ascensor=elemento
         }
     });
-    const objetoAEnviar={
-      idAscensor: ascensor.id,
-      estado: 'Ocupado',
-      piso: ascensor.pisoact,
-      pisoNuevo: piso,
-      solicitud: true
-
-    }
-    if(id==-999){
+    
+    if(id!=-999){
+      respuesta.id=id
+      respuesta.nombre=ascensor.nombre
+      const objetoAEnviar={
+        idAscensor: ascensor.id,
+        estado: 'Ocupado',
+        piso: ascensor.pisoact,
+        pisoNuevo: piso,
+        solicitud: true
+  
+      }
       selectorAscensorClienteBroker.sendHttpRequest('/cambio/publish', 'POST',objetoAEnviar)
           .then(respuesta => {
               //quizas aqui vaya algo, habra que ver que resulta de todo esto
@@ -39,9 +43,8 @@ const obtenerPiso = async (piso) => {
           .catch(error => {
               console.error('Error:', error);
           });
-      console.log(id);
     }
-    return id;
+    return respuesta;
   }
 const pollAscensor = async (piso) => {
   selectorAscensorClienteBroker.sendHttpRequest(`/ascensores/poll?id=${idAscensor}`, 'GET')

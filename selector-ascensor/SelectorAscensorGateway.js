@@ -22,23 +22,26 @@ const postRequest = async (req, res, url) => {
     if (url.startsWith('/api/selectorAscensor')) {
         try {
             let body =''
-            let piso
+            let piso_destino
+            let piso_origen
             req.on('data', (chunk) => {
                 body += chunk.toString();
               });
             req.on('end', async () => {
                 try {
-                    piso=JSON.parse(body).piso
-                    const respuesta = await selectorAscensorService.obtenerPiso(piso);
-                    /*if (respuesta.length == -999) {
+                    piso_destino=JSON.parse(body).piso_destino
+                    piso_origen=JSON.parse(body).piso_origen
+                    console.log("PISO DESTINO: "+piso_destino)
+                    console.log("PISO ORIGEN: "+piso_origen)
+                    const respuesta = await selectorAscensorService.obtenerPiso(piso_destino);
+                    if (respuesta.id == -999) {//CASO DE NO HABER ENCONTRADO NINGUNO
                         res.statusCode = 204;
                         res.end();
                     }
-                    else{*/
-                        res.setHeader('Content-Type', 'application/json'); // Devuelvo la respuesta con un header que indica que es JSON
+                    else{
                         res.end(JSON.stringify(respuesta));
                         res.statusCode = 200;
-                    
+                    }
                 }
                 catch (err) {
                     res.statusCode = 500;
