@@ -192,6 +192,7 @@ async function publishCambioEstado(req, res) {
           estado: data.estado,
           piso: data.piso,      //piso actual donde esta
           pisoNuevo: data.pisoNuevo,  //piso al que se dirige
+          solicitud: data.solicitud
         }
         
         //cambio el ascensor en cache local por si alguien se sucribe, lo tiene actualizado
@@ -202,8 +203,10 @@ async function publishCambioEstado(req, res) {
           return;
         }
 
+        if (cambioEstado.solicitud == false) {  //cambia solo si es publicacion los ascensores locales
          ascensor.estado = cambioEstado.estado;
          ascensor.pisoact = cambioEstado.pisoNuevo;
+        }
 
         console.log(ascensores);
         //En ESTE CASO SE ENVIA A TODOS INCLUYENDO AL QUE LO PUBLICO !!!VER SI DECIDIMOS QUE NO SE ENVIE AL QUE LO PUBLICO!!!
