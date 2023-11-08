@@ -53,7 +53,6 @@ comunication.sendDataSync(subscribeBrokerState, elevator)// me suscribo al topic
                         }
                     }
                     if (elevatorReceive !== null) { // si es nulo, no tengo ningun cambio de estado solicitado
-                        elevator.pisoTarget = elevatorReceive.pisoNuevo; // asigno al ascensor hasta que piso me voy a mover
                         console.log("recibi un cambio de estado");
                         console.log(elevatorReceive);
                         comunication.sendDataSync(pubBrokerState, { // mando confirmacion del cambio de estado
@@ -66,6 +65,7 @@ comunication.sendDataSync(subscribeBrokerState, elevator)// me suscribo al topic
                         console.log("se envio confirmacion de cambio de estado")
                         estadoRecividoMayuscula=elevatorReceive.estado.toUpperCase()
                         if (elevator.estado == 'OCIOSO' && estadoRecividoMayuscula == 'OCUPADO') {
+                            elevator.pisoTarget = elevatorReceive.pisoNuevo; // asigno al ascensor hasta que piso me voy a mover
                             elevator.estado = 'OCUPADO'
                             moveElevator(elevator, 0)
                                 .then(result => {
@@ -86,6 +86,7 @@ comunication.sendDataSync(subscribeBrokerState, elevator)// me suscribo al topic
                         }
                         else if (elevator.estado == 'DISPONIBLE' && estadoRecividoMayuscula == 'OCUPADO') { //cambio momentaneo
                             var pisoFinal = elevator.pisoTarget; // piso al que me voy a mover
+                            elevator.estado = 'OCUPADO'
                             moveElevator(elevator, pisoFinal)
                                 .then(result => {
                                     console.log("Elevador llegó a su destino:", result);
