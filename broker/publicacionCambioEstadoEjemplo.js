@@ -3,10 +3,10 @@ const http = require('http');
 function publicarCambioAscensor() {
     
     const postData = JSON.stringify({
-      idAscensor: 1,
-      estado: "ocupado",
-      piso: 233,
-      pisoNuevo: 0,
+      idAscensor: "c84605b4-7a59-11ee-b962-0242ac120002",
+      estado: "OCUPADO",
+      piso: 5,
+      pisoNuevo: 3,
       solicitud: true
     });
   
