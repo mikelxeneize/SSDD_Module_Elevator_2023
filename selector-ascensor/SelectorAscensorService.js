@@ -27,7 +27,8 @@ const obtenerPiso = async (piso) => {
       idAscensor: ascensor.id,
       estado: 'Ocupado',
       piso: ascensor.pisoact,
-      pisoNuevo: piso
+      pisoNuevo: piso,
+      solicitud: true
 
     }
     if(id==-999){
@@ -66,10 +67,12 @@ const pollCambios = async (piso) => {
       const respuestaObjeto = JSON.parse(respuesta);
       console.log(respuestaObjeto.toString());
       for(const objeto of respuestaObjeto){
-        for(const ascensor of Ascensores){
-          if(ascensor.id==objeto.idAscensor){
-            ascensor.estado=objeto.estado
-            ascensor.pisoact=objeto.piso
+        if(objeto.solicitud==false){
+          for(const ascensor of Ascensores){
+            if(ascensor.id==objeto.idAscensor){
+              ascensor.estado=objeto.estado
+              ascensor.pisoact=objeto.piso
+            }
           }
         }
       }
