@@ -43,7 +43,7 @@ function crearDivAscensor(ascensor) {
 /* 
 Event listeners para cada ascensor
 */
-function setupBotones(ascensor){
+function setupBotones(ascensor) {
     const botonDetenerAscensor = document.getElementById(`${ascensor.id}-detenerAscensor`);
     botonDetenerAscensor.addEventListener("click", function () {
         alert("A quien vas a parar vo' anda palla");
@@ -55,7 +55,8 @@ function setupBotones(ascensor){
             idAscensor: 1,
             estado: "disponible",
             piso: 233,
-            pisoNuevo: 0
+            pisoNuevo: 0,
+            solicitud: true
         }
         sendHttpRequest(brokerIp, brokerPort, pathPublicarCambioEstado, 'POST', body);
     });
@@ -96,10 +97,12 @@ edita el ascensor y despues se lo pasa por parametro
 function handlePollCambioEstado(cambiosEstado) {
     if (cambiosEstado) {
         cambiosEstado.forEach((cambioEstado) => {
-            const ascensor = ascensoresArray.find(ascensor => ascensor.id == cambioEstado.idAscensor);
-            ascensor.estado = cambioEstado.estado;
-            ascensor.pisoact = cambioEstado.piso;
-            editAscensor(ascensor);
+            if (cambioEstado.solicitud == false) {
+                const ascensor = ascensoresArray.find(ascensor => ascensor.id == cambioEstado.idAscensor);
+                ascensor.estado = cambioEstado.estado;
+                ascensor.pisoact = cambioEstado.piso;
+                editAscensor(ascensor);
+            }
         });
     }
 }

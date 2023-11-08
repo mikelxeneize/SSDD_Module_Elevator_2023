@@ -17,7 +17,7 @@ const sendHttpRequest = (url, tipo, body) => {
     };
     
     console.log('Enviando request a broker ',url,' ',tipo,' -- Path : ', options.path);
-
+    
     const req = http.request(options, (res) => {
       let data = '';
 
@@ -29,7 +29,6 @@ const sendHttpRequest = (url, tipo, body) => {
         if (res.statusCode === 200) {
           resolve(data); // Resuelve la promesa con los datos recibidos
         } else {
-          console.log('Error ', res.statusCode);
           reject('Error ' + res.statusCode); // Rechaza la promesa en caso de error
         }
       });
