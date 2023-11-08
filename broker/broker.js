@@ -199,13 +199,13 @@ async function publishCambioEstado(req, res) {
         const ascensor = ascensores.find((a) => a.id === cambioEstado.idAscensor);
         if (!ascensor) {
           res.statusCode = 400;
-          res.end('Ascensor no encontrado');
+          res.end('Ascensor no encontrado');  
           return;
         }
         console.log(cambioEstado.solicitud)
         if (cambioEstado.solicitud == false) {  //cambia solo si es publicacion los ascensores locales
          ascensor.estado = cambioEstado.estado;
-         ascensor.pisoact = cambioEstado.pisoNuevo;
+         ascensor.pisoact = cambioEstado.piso;
         }
 
         console.log(ascensores);

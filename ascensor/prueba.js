@@ -4,9 +4,9 @@ function sendDataSync(url, data) {
     const postData = JSON.stringify(data);
 
     const options = {
-        hostname: 'localhost',
+        hostname: url,
         port: 3000,
-        path: '/api' + url, // Concatena la URL con la ruta base',
+        path: '/data',
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -28,8 +28,7 @@ function sendDataSync(url, data) {
             });
 
             res.on('end', () => {
-                console.log(responseData);
-                resolve((responseData));
+                resolve(responseData);
             });
         });
 
@@ -41,9 +40,9 @@ function sendDataSync(url, data) {
 
 function getDataSync(url) {
     const options = {
-        hostname: 'localhost',
+        hostname: url,
         port: 3000,
-        path: '/api' + url, // Concatena la URL con la ruta base
+        path: '/data',
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
@@ -54,7 +53,7 @@ function getDataSync(url) {
 
     req.end();
 
-    return new  Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         req.on('response', (res) => {
             let responseData = '';
 
@@ -63,11 +62,7 @@ function getDataSync(url) {
             });
 
             res.on('end', () => {
-                if (res.statusCode === 200) {
-                    resolve(responseData); // Resuelve la promesa con los datos recibidos
-                  } else {
-                    reject('Error ' + res.statusCode); // Rechaza la promesa en caso de error
-                  }
+                resolve(responseData);
             });
         });
 
