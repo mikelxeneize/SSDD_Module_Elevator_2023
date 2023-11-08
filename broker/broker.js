@@ -202,7 +202,7 @@ async function publishCambioEstado(req, res) {
           res.end('Ascensor no encontrado');
           return;
         }
-
+        console.log(cambioEstado.solicitud)
         if (cambioEstado.solicitud == false) {  //cambia solo si es publicacion los ascensores locales
          ascensor.estado = cambioEstado.estado;
          ascensor.pisoact = cambioEstado.pisoNuevo;

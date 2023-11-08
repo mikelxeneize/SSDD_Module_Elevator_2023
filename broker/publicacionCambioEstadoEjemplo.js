@@ -7,6 +7,7 @@ function publicarCambioAscensor() {
       estado: "ocupado",
       piso: 233,
       pisoNuevo: 0,
+      solicitud: true
     });
   
     const options = {
