@@ -51,7 +51,7 @@ const pollAscensor = async (piso) => {
   .then(respuesta => {
       const respuestaObjeto = JSON.parse(respuesta);
       console.log(respuestaObjeto.toString());
-      for (const objeto of respuestaObjeto.ascensores) {
+      for (const objeto of respuestaObjeto) {
         Ascensores.push(objeto);
     }
   
