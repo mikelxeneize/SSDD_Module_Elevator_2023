@@ -59,7 +59,7 @@ function setupBotones(ascensor) {
         if (ascensor.estado == estadoDisponible && ascensor.pisoact == 0) {
             nuevoEstado = estadoOcupado;
         } else if (ascensor.estado == estadoOcupado && ascensor.pisoact == ascensor.pisoNuevo) {
-            nuevoEstado == estadoOcioso;
+            nuevoEstado = estadoOcioso;
         }
         if (nuevoEstado) {
             const body = {
@@ -113,6 +113,7 @@ function handlePollCambioEstado(cambiosEstado) {
                 const ascensor = ascensoresArray.find(ascensor => ascensor.id == cambioEstado.idAscensor);
                 ascensor.estado = cambioEstado.estado;
                 ascensor.pisoact = cambioEstado.piso;
+                ascensor.pisoNuevo = cambioEstado.pisoNuevo;
                 editAscensor(ascensor);
             }
         });

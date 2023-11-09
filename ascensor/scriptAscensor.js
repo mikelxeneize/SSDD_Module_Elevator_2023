@@ -23,7 +23,7 @@ const timeBetweenPoll = 5000 // 5 segundo entre consulta y consulta
 //lectura del archivo json sincronico
 const contenidoJSON = fs.readFileSync(fileName, 'utf8');
 var elevator = JSON.parse(contenidoJSON);
-elevator.pisoTarget = 0;
+elevator.pisoNuevo = 0;
 //elevator tiene los siguientes datos:
 // id: id del ascensor
 //nombre: nombre del ascensor
@@ -59,13 +59,13 @@ comunication.sendDataSync(subscribeBrokerState, elevator)// me suscribo al topic
                             "idAscensor": elevator.id,
                             "estado": elevatorReceive.estado,
                             "piso": elevatorReceive.piso,
-                            "pisoNuevo": elevatorReceive.pisoTarget,
+                            "pisoNuevo": elevatorReceive.pisoNuevo,
                             "solicitud": false
                         })
                         console.log("se envio confirmacion de cambio de estado")
                         estadoRecividoMayuscula=elevatorReceive.estado.toUpperCase()
                         if (elevator.estado == 'OCIOSO' && estadoRecividoMayuscula == 'OCUPADO') {
-                            elevator.pisoTarget = elevatorReceive.pisoNuevo; // asigno al ascensor hasta que piso me voy a mover
+                            elevator.pisoNuevo = elevatorReceive.pisoNuevo; // asigno al ascensor hasta que piso me voy a mover
                             elevator.estado = 'OCUPADO'
                             moveElevator(elevator, 0)
                                 .then(result => {
@@ -84,25 +84,27 @@ comunication.sendDataSync(subscribeBrokerState, elevator)// me suscribo al topic
                                     console.error("El elevador no llegó a su destino. (piso 0)");
                                 });
                         }
-                        else if (elevator.estado == 'DISPONIBLE' && estadoRecividoMayuscula == 'OCUPADO') { //cambio momentaneo
-                            var pisoFinal = elevator.pisoTarget; // piso al que me voy a mover
+                        else if (elevator.estado == 'DISPONIBLE' && estadoRecividoMayuscula == 'OCUPADO') {
+                            var pisoFinal = elevator.pisoNuevo; // piso al que me voy a mover
                             elevator.estado = 'OCUPADO'
                             moveElevator(elevator, pisoFinal)
                                 .then(result => {
                                     console.log("Elevador llegó a su destino:", result);
-                                    elevator.estado = 'OCIOSO'
-                                    comunication.sendDataSync(pubBrokerState, {
-                                        "idAscensor": elevator.id,
-                                        "estado": elevator.estado,
-                                        "piso": elevator.pisoact,
-                                        "pisoNuevo": elevatorReceive.pisoNuevo,
-                                        "solicitud": false
-                                    })
                                 })
                                 .catch(error => {
                                     console.error("Error:", error);
                                     console.error(`El elevador no llegó a su destino.piso ${pisoFinal}`);
                                 });
+                        }
+                        else if (elevator.estado == 'OCUPADO' && estadoRecividoMayuscula == 'OCIOSO'){
+                            elevator.estado = 'OCIOSO'
+                            comunication.sendDataSync(pubBrokerState, {
+                                "idAscensor": elevator.id,
+                                "estado": elevator.estado,
+                                "piso": elevator.pisoact,
+                                "pisoNuevo": elevatorReceive.pisoNuevo,
+                                "solicitud": false
+                            })
                         }
                     }
 
@@ -143,7 +145,7 @@ function moveElevator(data, floorToGo) {
                     "idAscensor": data.id,
                     "estado": data.estado,
                     "piso": data.pisoact,
-                    "pisoNuevo": data.pisoTarget,
+                    "pisoNuevo": data.pisoNuevo,
                     "solicitud": false
                 }); // publico el estado del ascensor en el broker por cada piso que pasa
 

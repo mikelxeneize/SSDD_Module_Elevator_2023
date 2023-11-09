@@ -1,0 +1,12 @@
+{
+    "id": "pepe2",
+    "nombre": "Pepe2",
+    "pisos": [
+        1,
+        2,
+        5,
+        13
+    ],
+    "estado": "OCIOSO",
+    "pisoact": 4
+}

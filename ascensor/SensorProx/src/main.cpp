@@ -5,12 +5,12 @@
 #include <DHT.h>
 
 // Replace with your network credentials
-const char* ssid = "your_SSID";
-const char* password = "your_PASSWORD";
+const char* ssid = "ALEJANDRO";
+const char* password = "necochea4866";
 
 // Replace with your MQTT broker IP address
 const char* mqtt_server = "https://test.mosquitto.org/";
-
+const char* mqtt_topic = "ssdd2023/ascensor";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -53,9 +53,9 @@ void reconnect() {
     if (client.connect("ESP8266Client")) {
       Serial.println("connected");
       // Once connected, publish an announcement...
-      client.publish("outTopic", "hello world");
+      //client.publish("outTopic", "hello world");
       // ... and resubscribe
-      client.subscribe("inTopic");
+      //client.subscribe("inTopic"); no tiene que suscribirse
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -68,11 +68,11 @@ void reconnect() {
 
 void setup() {
   pinMode(pirPin, INPUT);
-  Serial.begin(115200);
+  pinMode(pinLed, OUTPUT);
+  Serial.begin(9600);
   setup_wifi();
   client.setServer(mqtt_server, 1883);
-  client.setCallback(callback);
-}
+} 
 
 void loop() {
   if (!client.connected()) {
@@ -81,9 +81,16 @@ void loop() {
   client.loop();
 
   int pirState = digitalRead(pirPin);
-  if (pirState == HIGH) {
-    Serial.println("Motion detected!");
-    client.publish("pirSensor", "Motion detected!");
+  if (pirState == HIGH) {//mando un true, o un 1
+    Serial.println("Movimiento detectado");
+    client.publish(mqtt_topic, "1");
+    digitalWrite(pinLed, HIGH);
+    delay(5000);
+  }
+  else {
+    Serial.println("Sin movimientos"); //no mando nada
+    //client.publish(mqtt_topic, "Motion stopped!");
+    digitalWrite(pinLed, LOW);
     delay(5000);
   }
 }

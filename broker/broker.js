@@ -191,7 +191,7 @@ async function publishCambioEstado(req, res) {
           idAscensor: data.idAscensor,
           estado: data.estado,
           piso: data.piso,      //piso actual donde esta
-          pisoNuevo: data.pisoNuevo,  //piso al que se dirige
+          pisoNuevo: data.pisoNuevo,
           solicitud: data.solicitud
         }
         
