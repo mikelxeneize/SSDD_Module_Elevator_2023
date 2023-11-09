@@ -20,7 +20,7 @@ const obtenerPiso = async (piso) => {
     Ascensores.forEach(function(elemento) {
         if (( elemento.estado.toLowerCase()=='ocioso' || elemento.estado.toLowerCase()=='oscioso')  && elemento.pisos.includes(parseInt(piso)) && elemento.pisoact<distancia ) {
             id=elemento.id
-            distancia=elemento.distancia
+            distancia=elemento.pisoact
             ascensor=elemento
         }
     });
