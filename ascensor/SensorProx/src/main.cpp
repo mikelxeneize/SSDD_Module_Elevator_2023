@@ -2,14 +2,13 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <Adafruit_Sensor.h>
-#include <DHT.h>
 
 // Replace with your network credentials
 const char* ssid = "ALEJANDRO";
 const char* password = "necochea4866";
 
 // Replace with your MQTT broker IP address
-const char* mqtt_server = "mqtt://test.mosquitto.org";
+const char* mqtt_server = "test.mosquitto.org";
 const char* mqtt_topic = "ssdd2023/ascensor";
 const int port = 1883;
 const char* mqttUser = "ascensor1";
@@ -19,8 +18,8 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 // Replace with your PIR sensor pin
-const int pirPin = D1; //the digital pin connected to the PIR sensor's output, GPIO5
-int pinLed = D2; //led built-in on the board, pin GPIO2
+const int pirPin = 5; //the digital pin connected to the PIR sensor's output, GPIO5
+int pinLed = 2; //led built-in on the board, pin GPIO2
 
 void setup_wifi() {
   delay(10);
@@ -84,14 +83,14 @@ void loop() {
   int pirState = digitalRead(pirPin);
   if (pirState == HIGH) {//mando un true, o un 1
     Serial.println("Movimiento detectado");
-    client.publish(mqtt_topic, "1");
-    digitalWrite(pinLed, HIGH);
+    client.publish(mqtt_topic, "c84605b4-7a59-11ee-b962-0242ac120002,OCUPADO");
+    digitalWrite(pinLed, LOW); //por alguna razon que desconozco, en este sketch LOW es prendido y HIGH es apago
     delay(5000);
   }
   else {
     Serial.println("Sin movimientos"); //no mando nada
     //client.publish(mqtt_topic, "Motion stopped!");
-    digitalWrite(pinLed, LOW);
+    digitalWrite(pinLed, HIGH);
     delay(5000);
   }
 }

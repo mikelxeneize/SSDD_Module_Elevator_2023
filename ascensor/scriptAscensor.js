@@ -2,6 +2,8 @@ const fs = require('fs');
 
 const comunication = require('./comunication');
 
+const mqtt = require("mqtt");
+
 //const comunication2 = require('./SelectorAscensorClienteBroker');
 
 const pubBrokerAscensor = '/ascensores/publish';
@@ -12,6 +14,10 @@ var pollBrokerState = '/cambio/poll';
 
 var pubBrokerState = '/cambio/publish';
 
+const clientmqtt = mqtt.connect("mqtt://test.mosquitto.org");
+
+const topic = 'ssdd2023/ascensor'
+
 const fileName = process.argv[2]; // 3er parametro que le paso al script, el archivo json con los datos del ascensor
 
 const timeInFloor = 2000; // 2 segundos por piso
@@ -19,10 +25,15 @@ const timeInFloor = 2000; // 2 segundos por piso
 const timeAvilable = 30000 // 30 segundos disponible antes de ponerse oscioso
 
 const timeBetweenPoll = 5000 // 5 segundo entre consulta y consulta 
+//------------------------------------------------Probablemente este metodo se tenga que cambiar porque el otro grupo no manda un archivo -------------------------
+var elevator = {};
 
-//lectura del archivo json sincronico
-const contenidoJSON = fs.readFileSync(fileName, 'utf8');
-var elevator = JSON.parse(contenidoJSON);
+if (fs.existsSync(fileName) && fs.lstatSync(fileName).isFile()) {
+    const contenidoJSON = fs.readFileSync(fileName, 'utf8');
+    elevator = JSON.parse(contenidoJSON);
+} else {
+    elevator = JSON.parse(fileName);
+}
 elevator.pisoNuevo = 0;
 //elevator tiene los siguientes datos:
 // id: id del ascensor
@@ -33,6 +44,15 @@ elevator.pisoNuevo = 0;
 // pisotarget: piso al que se dirige el ascensor
 
 //yo publico con solicitud false
+clientmqtt.on('connect', () => {
+    clientmqtt.subscribe(topic, (err) => {
+        if (err) {
+            console.error('No me suscribi al topico:', err);
+        } else {
+            console.log(`Me suscribi al topico ${topic}`);
+        }
+    });
+});
 comunication.sendDataSync(pubBrokerAscensor, elevator); // publico el ascensor en el broker
 comunication.sendDataSync(subscribeBrokerState, elevator)// me suscribo al topic de estado del ascensor en el broker
     .then(async (result) => {
@@ -63,7 +83,7 @@ comunication.sendDataSync(subscribeBrokerState, elevator)// me suscribo al topic
                             "solicitud": false
                         })
                         console.log("se envio confirmacion de cambio de estado")
-                        estadoRecividoMayuscula=elevatorReceive.estado.toUpperCase()
+                        estadoRecividoMayuscula = elevatorReceive.estado.toUpperCase()
                         if (elevator.estado == 'OCIOSO' && estadoRecividoMayuscula == 'OCUPADO') {
                             elevator.pisoNuevo = elevatorReceive.pisoNuevo; // asigno al ascensor hasta que piso me voy a mover
                             elevator.estado = 'OCUPADO'
@@ -96,7 +116,7 @@ comunication.sendDataSync(subscribeBrokerState, elevator)// me suscribo al topic
                                     console.error(`El elevador no llegó a su destino.piso ${pisoFinal}`);
                                 });
                         }
-                        else if (elevator.estado == 'OCUPADO' && estadoRecividoMayuscula == 'OCIOSO'){
+                        else if (elevator.estado == 'OCUPADO' && estadoRecividoMayuscula == 'OCIOSO') {
                             elevator.estado = 'OCIOSO'
                             comunication.sendDataSync(pubBrokerState, {
                                 "idAscensor": elevator.id,
@@ -114,10 +134,31 @@ comunication.sendDataSync(subscribeBrokerState, elevator)// me suscribo al topic
                         console.log('No hay cambios nuevos');
                     else
                         console.error('Error:', error);
-                    //aca tengo que agarrar lo que manda el broker mqtt
                 });
             await new Promise(resolve => setTimeout(resolve, 1000));
             console.log("esperando cambio de estado");
+            // aca lee los mensajes del broker de mqtt (mosquitto)
+            clientmqtt.on('message', (topic, message) => {
+                // Desestructurar el string en partes 
+                var [id_recivido_mqtt, estado_recivido_mqtt] = message.toString().split(",");
+                var menssageReceiveMQTT = {
+                    id: id_recivido_mqtt,
+                    estado: estado_recivido_mqtt
+                };
+                if (elevator.id==menssageReceiveMQTT.id && elevator.estado == 'DISPONIBLE' && menssageReceiveMQTT.estado == 'OCUPADO') {
+                    var pisoFinal = elevator.pisoNuevo; // piso al que me voy a mover
+                    elevator.estado = 'OCUPADO'
+                    moveElevator(elevator, pisoFinal)
+                        .then(result => {
+                            console.log("Elevador llegó a su destino:", result);
+                        })
+                        .catch(error => {
+                            console.error("Error:", error);
+                            console.error(`El elevador no llegó a su destino.piso ${pisoFinal}`);
+                        });
+                }
+
+            });
         }//
     })
     .catch((err) => {
@@ -161,26 +202,3 @@ function moveElevator(data, floorToGo) {
         moveOneFloor();
     });
 }
-
-/*function moveElevator(data, floorToGo) {
-console.log('----------------Data:' + JSON.stringify(data))
-let aux
-if (floorToGo == 0)
-    aux = data.pisoact;
-else
-    aux = floorToGo;
-for (let i = 0; i < aux; i++) { // recorro los pisos
-    if (floorToGo == 0)
-        data.pisoact -= 1;  
-    else
-        data.pisoact += 1;
-    comunication.sendDataSync(pubBrokerState, {
-        "idAscensor": data.id,
-        "estado": data.estado,
-        "piso": data.pisoact,
-        "pisoNuevo": data.pisoTarget,
-        "solicitud": false  
-    }) // publico el estado del ascensor en el broker por cada piso que pasa
-    console.log(`Ascensor ${elevator.id} en piso ${data.pisoact}`); // no existe currentFloor
-}
-}*/
