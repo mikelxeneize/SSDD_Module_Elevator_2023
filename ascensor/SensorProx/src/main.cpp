@@ -9,8 +9,12 @@ const char* ssid = "ALEJANDRO";
 const char* password = "necochea4866";
 
 // Replace with your MQTT broker IP address
-const char* mqtt_server = "https://test.mosquitto.org/";
+const char* mqtt_server = "mqtt://test.mosquitto.org";
 const char* mqtt_topic = "ssdd2023/ascensor";
+const int port = 1883;
+const char* mqttUser = "ascensor1";
+const char* mqttPassword = "ascensor1";
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -33,16 +37,6 @@ void setup_wifi() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
-}
-
-void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println();
 }
 
 void reconnect() {
@@ -70,16 +64,23 @@ void setup() {
   pinMode(pirPin, INPUT);
   pinMode(pinLed, OUTPUT);
   Serial.begin(9600);
+  Serial.println("1. Estoy en el setup, antes del setup_wifi");
   setup_wifi();
-  client.setServer(mqtt_server, 1883);
+  Serial.println("2. Me conecte al wifi");
+  client.setServer(mqtt_server, port);
+  client.connect(mqttUser);
 } 
 
 void loop() {
+    Serial.println("3. Estoy en el loop");
+    Serial.println(client.connected());
   if (!client.connected()) {
+    Serial.println("4. El cliente no se conecto");
     reconnect();
   }
+  Serial.println("5. El cliente se conecto");
   client.loop();
-
+  Serial.println("6. El cliente ya entro al mqtt loop");
   int pirState = digitalRead(pirPin);
   if (pirState == HIGH) {//mando un true, o un 1
     Serial.println("Movimiento detectado");
