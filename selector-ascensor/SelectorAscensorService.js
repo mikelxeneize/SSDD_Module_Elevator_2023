@@ -9,7 +9,7 @@ const selectorAscensorClienteBroker = require('./SelectorAscensorClienteBroker.j
 let Ascensores=[]
 var idAscensor = '';
 var idCambio = '';
-const pollingInterval = 8;
+const pollingInterval = 1;
 
 const obtenerPiso = async (piso) => {
     let distancia=999
