@@ -25,23 +25,22 @@
   <div class="container">
     <h1 class="mt-4 mb-4 center-text menu-title">Menú de Gestión de Ascensores</h1>
     <div class="row" id="ascensores-container">
-      <!-- ======================================== -->
-      <div class="col-lg-4 col-md-6 col-sm-12">
-        <div class="card mb-4">
-          <div class="card-header bg-primary text-white">
-            <h5 class="card-title">Ascensor 1</h5>
+      
+        <!-- ======================================== -->
+        <!-- <div class="card mb-4">
+          <div class="card-header bg-primary text-white text-center">
+              <h5 class="card-title">${ascensor.nombre}</h5>
           </div>
           <div class="card-body">
-            <h6 class="card-subtitle mb-2 text-muted">Estado: En funcionamiento</h6>
-            <p class="card-text">Piso Actual: 5</p>
+              <h6 class="card-subtitle mb-2 text-muted">Estado: ${ascensor.estado}</h6>
+              <p class="card-text">Piso Actual: ${ascensor.pisoact}</p>
           </div>
-          <div class="card-footer d-flex justify-content-between">
-            <button class="btn btn-success">Ver Detalles</button>
-            <button class="btn btn-danger">Detener Ascensor</button>
+          <div class="card-footer d-flex justify-content-center">
+              <button id="${ascensor.id}-cerrarPuertas" class="btn btn-success">Cerrar Puertas</button>
           </div>
-        </div>
+      </div> -->
+        <!-- ======================================== -->
       </div>
-      <!-- ======================================== -->
     </div>
   </div>
   
