@@ -20,7 +20,7 @@ const requestHandler = (req, res) => {
 
 const postRequest = async (req, res, url) => {
     if (url.startsWith('/api/selectorAscensor')) {
-        try {
+        try {       
             let body =''
             let piso_destino
             let piso_origen
@@ -35,8 +35,12 @@ const postRequest = async (req, res, url) => {
                     console.log("PISO ORIGEN: "+piso_origen)
                     const respuesta = await selectorAscensorService.obtenerPiso(piso_destino);
                     if (respuesta.id == -999) {//CASO DE NO HABER ENCONTRADO NINGUNO
-                        res.statusCode = 204;
-                        res.end();
+                        const errorResponse = {
+                            cod_error: '409',
+                            descripcion: 'No se encontró ningún ascensor'
+                        };
+                        res.statusCode = 409;
+                        res.end(JSON.stringify(errorResponse));
                     }
                     else{
                         res.end(JSON.stringify(respuesta));
