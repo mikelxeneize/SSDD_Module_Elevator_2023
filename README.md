@@ -18,6 +18,6 @@ Para ejecutar el cliente web: Open with live server
 Para ejecutar el microservicio ascensor: "node ascensor/scriptAscensor.js param[2]" donde param [2] son los datos en json del ascensor creado por otro servicio
 
 
-Puertos:
+* Puertos:
 Broker: 3000
 Selector ascensor: 3001
