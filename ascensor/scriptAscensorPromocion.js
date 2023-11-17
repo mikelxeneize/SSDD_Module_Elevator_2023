@@ -4,8 +4,6 @@ const comunication = require('./comunication');
 
 const mqtt = require("mqtt");
 
-//const comunication2 = require('./SelectorAscensorClienteBroker');
-
 const pubBrokerAscensor = '/ascensores/publish';
 
 const subscribeBrokerState = '/cambio/subscribe';
