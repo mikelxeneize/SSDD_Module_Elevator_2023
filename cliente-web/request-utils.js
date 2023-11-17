@@ -6,11 +6,7 @@ export function sendHttpRequest(ip, port, path, tipo, body) {
   const contenidoEnBytes = encoder.encode(body);
 
   const options = {
-    method: tipo,
-    /* headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': contenidoEnBytes.length.toString(),
-    }, */
+    method: tipo
   };
 
   if (body !== undefined) {
