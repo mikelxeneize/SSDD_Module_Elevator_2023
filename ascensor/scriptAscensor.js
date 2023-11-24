@@ -10,10 +10,6 @@ var pollBrokerState = '/cambio/poll';
 
 var pubBrokerState = '/cambio/publish';
 
-const clientmqtt = mqtt.connect("mqtt://test.mosquitto.org");
-
-const topic = 'ssdd2023/ascensor'
-
 const fileName = process.argv[2]; // 3er parametro que le paso al script, el archivo json con los datos del ascensor
 
 const timeInFloor = 2000; // 2 segundos por piso
@@ -39,16 +35,6 @@ elevator.pisoNuevo = 0;
 // pisoact: piso actual del ascensor
 // pisotarget: piso al que se dirige el ascensor
 
-//yo publico con solicitud false
-clientmqtt.on('connect', () => {
-    clientmqtt.subscribe(topic, (err) => {
-        if (err) {
-            console.error('No me suscribi al topico:', err);
-        } else {
-            console.log(`Me suscribi al topico ${topic}`);
-        }
-    });
-});
 comunication.sendDataSync(pubBrokerAscensor, elevator); // publico el ascensor en el broker
 comunication.sendDataSync(subscribeBrokerState, elevator)// me suscribo al topic de estado del ascensor en el broker
     .then(async (result) => {
